@@ -44,6 +44,7 @@ class Products(models.Model):
     Product_Description = models.CharField(max_length=255)
     Product_Price = models.FloatField()
     product_Qty = models.IntegerField()
+    Supplier = models.ForeignKey('Supplier', on_delete=models.CASCADE, blank=True, null=True)
     
     class Meta:
         verbose_name_plural = "Products"
@@ -57,6 +58,7 @@ class Supplier(models.Model):
     Supplier_Address = models.CharField(max_length=255)
     Supplier_Phone = models.CharField(max_length=255)
     Supplier_Email = models.CharField(max_length=255)
+    
     
     class Meta:
         verbose_name_plural = "Supplier"
