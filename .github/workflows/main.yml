@@ -43,5 +43,5 @@ jobs:
         git config --global user.email "actions@github.com"
         git fetch
         git merge --ff-only ${{ github.sha }}
-        git remote set-url origin https://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@github.com/ashwani-bluethink/SOW.git
+        git remote set-url origin https://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@github.com/ashwani-bluethink/SOW.git
         git push origin main
