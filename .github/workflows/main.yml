@@ -39,8 +39,8 @@ jobs:
 
     - name: Merge to main
       run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
+        git config --global user.name "Samdarsh SIngh Cicd"
+        git config --global user.email "samdarsh.bluethink@gmail.com"
         git fetch
         git merge --ff-only ${{ github.sha }}
         git remote set-url origin https://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@github.com/ashwani-bluethink/SOW.git
