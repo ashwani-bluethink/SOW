@@ -16,7 +16,7 @@ local_settings.py
 
 # Virtual environment
 venv/
-.env
+# .env
 
 # IDE-specific files
 .vscode/
