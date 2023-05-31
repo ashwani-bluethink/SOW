@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from django.shortcuts import render
 from .models import Order, OrderLine, Products
-from django.core.paginator import Paginator
+from django.db.models import Q
 
 
 def api_order_response(dict_filter, List_of_OutputSelector=None, new_headers=None):
@@ -36,7 +36,11 @@ def api_order_response(dict_filter, List_of_OutputSelector=None, new_headers=Non
 
 
 def order_data_view():
-    dict_filter = {'OrderStatus': 'New Backorder'}
+    # dict_filter = {'OrderStatus': 'New Backorder'}
+    # output_selector = ['OrderID', 'OrderStatus',
+    #                    'ShippingOption', 'SalesChannel', 'OrderLine', 'DatePlaced']
+    dict_filter = { 'DatePlacedFrom': "2022-06-01 00:00:00",
+    'OrderStatus': ['New Backorder','Pending Pickup']}
     output_selector = ['OrderID', 'OrderStatus',
                        'ShippingOption', 'SalesChannel', 'OrderLine', 'DatePlaced']
     new_headers = None
@@ -93,135 +97,47 @@ def api_product_response(dict_filter, List_of_OutputSelector=None, new_headers=N
     return json_data
 
 
-def product_insert_db(request):
-    skus_and_orders = OrderLine.objects.only('SKU', 'Order')
-    api_fields = ['SKU', 'PrimarySupplier',
-                  'DefaultPrice', 'SupplierId', 'Misc27']
 
-    for sku in skus_and_orders:
+
+def product_insert_db(request):
+    skus_and_orders = OrderLine.objects.only('SKU', 'Order', 'OrderLineID')
+    api_fields = ['SKU', 'PrimarySupplier', 'DefaultPrice', 'SupplierId', 'Misc27']
+
+    # Fetch all products and put them in a dictionary for fast lookups
+    existing_products = {product.sku: product for product in Products.objects.all()}
+
+    for orderline_instance in   skus_and_orders:
         product_info = api_product_response(
-            {'SKU': sku.SKU},
+            {'SKU': orderline_instance.SKU},
             api_fields,
             None
         )
-        try:
-            order = Order.objects.get(OrderID=sku.Order)
-        except Order.DoesNotExist:
-            continue
-        product = Products(
-            order=order,
-            sku=sku.SKU,
-            misc27=product_info['Item'][0]['Misc27'],
-            primary_supplier=product_info['Item'][0]['PrimarySupplier'],
-            inventory_id=product_info['Item'][0]['InventoryID'],
-            default_price=float(product_info['Item'][0]['DefaultPrice']),
-            ack = product_info["Ack"],
-        )
-        product.save()
+        
+        product_defaults = {
+            'order': orderline_instance.Order,
+            'OrderLine': orderline_instance,
+            'sku': orderline_instance.SKU,
+            'misc27': product_info['Item'][0]['Misc27'],
+            'primary_supplier': product_info['Item'][0]['PrimarySupplier'],
+            'inventory_id': product_info['Item'][0]['InventoryID'],
+            'default_price': float(product_info['Item'][0]['DefaultPrice']),
+            'ack': product_info["Ack"],
+        }
+
+        # Check if the product already exists in the table
+        existing_product = existing_products.get(orderline_instance.SKU)
+        
+        if existing_product:
+            # Update existing product information
+            for key, value in product_defaults.items():
+                setattr(existing_product, key, value)
+            existing_product.save()
+        else:
+            # Create a new product entry
+            Products.objects.create(**product_defaults)
 
     return JsonResponse({'message': 'Product information stored successfully.'})
 
-
-
-from django.db.models import Prefetch
-
-# Assuming you have already imported the required models
-
-# def get_suppliers_and_products(request):
-#     # Retrieve all suppliers with their related products using Prefetch
-#     suppliers = Products.objects.select_related('order').prefetch_related(
-#         Prefetch('order__order_lines', queryset=OrderLine.objects.select_related('Order')),
-#     )
-    
-#     supplier_products = {}
-    
-#     for supplier in suppliers:
-#         supplier_name = supplier.primary_supplier
-        
-#         # Create an entry for the supplier if it doesn't exist
-#         if supplier_name not in supplier_products:
-#             supplier_products[supplier_name] = []
-        
-#         # Retrieve the products related to the supplier
-#         products = supplier.order.products.all()
-#         supplier_products[supplier_name].extend(products)
-    
-   
-
-#     # Iterate over the supplier_products dictionary
-#     for supplier, products in supplier_products.items():
-#         print(f"Supplier: {supplier}")
-        
-#         for product in products:
-#             print(f"Product SKU: {product.sku}")
-#             # Print other product details if needed
-
-
-import json
-from django.http import JsonResponse
-from django.db.models import Prefetch
-from Order.models import OrderLine
-
-def get_suppliers_and_products(request):
-    # Retrieve all suppliers with their related products using Prefetch
-    suppliers = Products.objects.select_related('order').prefetch_related(
-        Prefetch('order__order_lines', queryset=OrderLine.objects.select_related('Order')),
-    )
-    
-    supplier_products = {}
-    
-    for supplier in suppliers:
-        supplier_name = supplier.primary_supplier
-        
-        # Create an entry for the supplier if it doesn't exist
-        if supplier_name not in supplier_products:
-            supplier_products[supplier_name] = []
-        
-        # Retrieve the products related to the supplier
-        products = supplier.order.products.filter(order__OrderStatus='New Backorder')
-        supplier_products[supplier_name].extend(products)
-    
-    # Prepare the response data
-    response_data = {
-        'suppliers': []
-    }
-    
-    # Iterate over the supplier_products dictionary
-    for supplier, products in supplier_products.items():
-        supplier_data = {
-            'name': supplier,
-            'products': []
-        }
-        
-        for product in products:
-            try:
-                order_line = OrderLine.objects.get(Order=product.order, SKU=product.sku)
-                quantity = order_line.Quantity
-            except OrderLine.DoesNotExist:
-                quantity = None
-            
-            product_data = {
-                'sku': product.sku,
-                'misc27': product.misc27,
-                'primary_supplier': product.primary_supplier,
-                'inventory_id': product.inventory_id,
-                'default_price': product.default_price,
-                'ack': product.ack,
-                'order_id': product.order.OrderID,
-                'quantity': quantity
-            }
-            
-            supplier_data['products'].append(product_data)
-        
-        response_data['suppliers'].append(supplier_data)
-
-    # Return the response as JSON
-    return JsonResponse(response_data)
-
-
-def get_supplier_names(request):
-    suppliers = Products.objects.values_list('primary_supplier', flat=True).distinct()
-    return list(suppliers)
 
 
     
@@ -459,3 +375,52 @@ def get_supplier_names(request):
 # }
 
 # insert_order_data(order_data)
+
+
+
+
+
+# def product_insert_db(request):
+#     skus_and_orders = OrderLine.objects.only('SKU', 'Order', 'OrderLineID')
+#     api_fields = ['SKU', 'PrimarySupplier', 'DefaultPrice', 'SupplierId', 'Misc27']
+
+#     for sku in skus_and_orders:
+#         product_info = api_product_response(
+#             {'SKU': sku.SKU},
+#             api_fields,
+#             None
+#         )
+#         try:
+#             order = Order.objects.get(OrderID=sku.Order)
+#         except Order.DoesNotExist:
+#             continue
+#         try:
+#             order_line = OrderLine.objects.get(OrderLineID=sku.OrderLineID)
+#         except OrderLine.DoesNotExist:
+#             continue
+        
+#         product_defaults = {
+#             'order': order,
+#             'OrderLine': order_line,
+#             'sku': sku.SKU,
+#             'misc27': product_info['Item'][0]['Misc27'],
+#             'primary_supplier': product_info['Item'][0]['PrimarySupplier'],
+#             'inventory_id': product_info['Item'][0]['InventoryID'],
+#             'default_price': float(product_info['Item'][0]['DefaultPrice']),
+#             'ack': product_info["Ack"],
+#         }
+        
+#         # Check if the product already exists in the table
+#         existing_product = Products.objects.filter(
+#             Q(order=order) & Q(OrderLine=order_line) & Q(sku=sku.SKU)
+#         )
+
+        
+#         if existing_product:
+#             # Update existing product information
+#             existing_product.update(**product_defaults)
+#         else:
+#             # Create a new product entry
+#             Products.objects.create(**product_defaults)
+
+#     return JsonResponse({'message': 'Product information stored successfully.'})
