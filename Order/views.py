@@ -94,6 +94,7 @@ def api_product_response(dict_filter, List_of_OutputSelector=None, new_headers=N
 
 
 def product_insert_db(request):
+    
     skus_and_orders = OrderLine.objects.only('SKU', 'Order')
     api_fields = ['SKU', 'PrimarySupplier',
                   'DefaultPrice', 'SupplierId', 'Misc27']
@@ -221,7 +222,7 @@ def get_suppliers_and_products(request):
 
 def get_supplier_names(request):
     suppliers = Products.objects.values_list('primary_supplier', flat=True).distinct()
-    return list(suppliers)
+    return JsonResponse({'suppliers': list(suppliers)})
 
 
     
