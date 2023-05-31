@@ -3,66 +3,62 @@ import uuid
 from django.db import models
 
 class Order(models.Model):
-    ShippingOption = models.CharField(max_length=255)
-    CustomerRef4 = models.CharField(max_length=255, blank=True)
-    SalesChannel = models.CharField(max_length=255)
-    InternalOrderNotes = models.TextField(blank=True)
-    OrderID = models.CharField(max_length=255, primary_key=True)
-    CustomerRef6 = models.CharField(max_length=255, blank=True)
-    CustomerRef3 = models.CharField(max_length=255, blank=True)
+    OrderID = models.CharField(max_length=100,primary_key=True,)
+    ShippingOption = models.CharField(max_length=100)
     DatePlaced = models.DateTimeField()
-    OrderStatus = models.CharField(max_length=255)
-    CustomerRef5 = models.TextField(blank=True)
-    CustomerRef7 = models.CharField(max_length=255, blank=True)
+    OrderStatus = models.CharField(max_length=100)
+    SalesChannel = models.CharField(max_length=100)
+
     
     class Meta:
         verbose_name_plural = "Orders"
+        ordering = ('-DatePlaced',)
 
     def __str__(self):
         return self.OrderID
 
 
 class OrderLine(models.Model):
-    eBay = models.CharField(max_length=255, blank=True)
+    OrderLineID = models.CharField(max_length=100, primary_key=True,)
+    Order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_lines')
     Quantity = models.IntegerField()
-    SKU = models.CharField(max_length=255)
-    OrderLineID = models.CharField(max_length=255, primary_key=True)
-    ItemNotes = models.TextField(blank=True)
-    Order = models.ForeignKey(Order, related_name='order_lines', on_delete=models.CASCADE)
+    SKU = models.CharField(max_length=100)
+    eBay = models.CharField(max_length=100,null=True, blank=True)
+   
 
     class Meta:
         verbose_name_plural = "Order Lines"
+        ordering = ('-OrderLineID',)
         
     def __str__(self):
         return self.OrderLineID
     
     
     
+
+
 class Products(models.Model):
-    SKU = models.CharField(max_length=255, primary_key=True)
-    Product_Name = models.CharField(max_length=255)
-    Product_Description = models.CharField(max_length=255)
-    Product_Price = models.FloatField()
-    product_Qty = models.IntegerField()
-    Supplier = models.ForeignKey('Supplier', on_delete=models.CASCADE, blank=True, null=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='products',)
+    # OrderLine = models.OneToOneField(OrderLine, on_delete=models.CASCADE, related_name='products')
+    sku = models.CharField(max_length=100, primary_key=True,)
+    misc27 = models.CharField(max_length=10)
+    primary_supplier = models.CharField(max_length=100)
+    inventory_id = models.CharField(max_length=10)
+    default_price = models.FloatField()
+    ack = models.CharField(max_length=10,null=True, blank=True)
+    
     
     class Meta:
         verbose_name_plural = "Products"
-    
-    def __str__(self):
-        return self.SKU
+        ordering = ('-sku',)
+       
 
-class Supplier(models.Model):
-    Supplier_ID = models.CharField(max_length=255, primary_key=True)
-    Supplier_Name = models.CharField(max_length=255)
-    Supplier_Address = models.CharField(max_length=255)
-    Supplier_Phone = models.CharField(max_length=255)
-    Supplier_Email = models.CharField(max_length=255)
-    
-    
-    class Meta:
-        verbose_name_plural = "Supplier"
-    
     def __str__(self):
-        return self.Supplier_ID
+        return self.sku
+
     
+    
+    
+
+
+

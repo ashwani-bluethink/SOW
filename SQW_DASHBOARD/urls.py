@@ -17,8 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 
+api_prefix_order = 'api/v1/Orderapi/'
+api_prefix_warehouse = 'api/v1/warehouseapi/'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('Order.urls')),
-    path('', include('warehouse.urls')),
+    path(api_prefix_order, include('Order.urls')),
+    path(api_prefix_warehouse, include('warehouse.urls')),
 ]
