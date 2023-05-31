@@ -24,7 +24,7 @@ class OrderLineAdmin(admin.ModelAdmin):
     
 @admin.register(Products)
 class ProductsAdmin(admin.ModelAdmin):
-    list_display = ('order', 'sku', 'misc27', 'primary_supplier', 'inventory_id', 'default_price', 'ack')
+    list_display = ('order','order', 'OrderLine','sku', 'misc27', 'primary_supplier', 'inventory_id', 'default_price', 'ack')
     list_filter = ('order', 'sku', 'misc27', 'primary_supplier', 'inventory_id', 'default_price')
     search_fields = ('order', 'sku', 'misc27', 'primary_supplier', 'inventory_id', 'default_price')
     ordering = ('order', 'sku', 'misc27', 'primary_supplier', 'inventory_id', 'default_price')

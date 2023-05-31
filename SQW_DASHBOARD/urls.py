@@ -24,4 +24,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path(api_prefix_order, include('Order.urls')),
     path(api_prefix_warehouse, include('warehouse.urls')),
+    path('', include('authentication.urls')),
 ]

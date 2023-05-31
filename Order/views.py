@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 from django.shortcuts import render
 from .models import Order, OrderLine, Products
-from django.core.paginator import Paginator
+from django.db.models import Q
 
 
 def api_order_response(dict_filter, List_of_OutputSelector=None, new_headers=None):
@@ -36,7 +36,11 @@ def api_order_response(dict_filter, List_of_OutputSelector=None, new_headers=Non
 
 
 def order_data_view():
-    dict_filter = {'OrderStatus': 'New Backorder'}
+    # dict_filter = {'OrderStatus': 'New Backorder'}
+    # output_selector = ['OrderID', 'OrderStatus',
+    #                    'ShippingOption', 'SalesChannel', 'OrderLine', 'DatePlaced']
+    dict_filter = { 'DatePlacedFrom': "2022-06-01 00:00:00",
+    'OrderStatus': ['New Backorder','Pending Pickup']}
     output_selector = ['OrderID', 'OrderStatus',
                        'ShippingOption', 'SalesChannel', 'OrderLine', 'DatePlaced']
     new_headers = None
@@ -99,26 +103,43 @@ def product_insert_db(request):
     api_fields = ['SKU', 'PrimarySupplier',
                   'DefaultPrice', 'SupplierId', 'Misc27']
 
-    for sku in skus_and_orders:
+
+def product_insert_db(request):
+    skus_and_orders = OrderLine.objects.only('SKU', 'Order', 'OrderLineID')
+    api_fields = ['SKU', 'PrimarySupplier', 'DefaultPrice', 'SupplierId', 'Misc27']
+
+    # Fetch all products and put them in a dictionary for fast lookups
+    existing_products = {product.sku: product for product in Products.objects.all()}
+
+    for orderline_instance in   skus_and_orders:
         product_info = api_product_response(
-            {'SKU': sku.SKU},
+            {'SKU': orderline_instance.SKU},
             api_fields,
             None
         )
-        try:
-            order = Order.objects.get(OrderID=sku.Order)
-        except Order.DoesNotExist:
-            continue
-        product = Products(
-            order=order,
-            sku=sku.SKU,
-            misc27=product_info['Item'][0]['Misc27'],
-            primary_supplier=product_info['Item'][0]['PrimarySupplier'],
-            inventory_id=product_info['Item'][0]['InventoryID'],
-            default_price=float(product_info['Item'][0]['DefaultPrice']),
-            ack = product_info["Ack"],
-        )
-        product.save()
+        
+        product_defaults = {
+            'order': orderline_instance.Order,
+            'OrderLine': orderline_instance,
+            'sku': orderline_instance.SKU,
+            'misc27': product_info['Item'][0]['Misc27'],
+            'primary_supplier': product_info['Item'][0]['PrimarySupplier'],
+            'inventory_id': product_info['Item'][0]['InventoryID'],
+            'default_price': float(product_info['Item'][0]['DefaultPrice']),
+            'ack': product_info["Ack"],
+        }
+
+        # Check if the product already exists in the table
+        existing_product = existing_products.get(orderline_instance.SKU)
+        
+        if existing_product:
+            # Update existing product information
+            for key, value in product_defaults.items():
+                setattr(existing_product, key, value)
+            existing_product.save()
+        else:
+            # Create a new product entry
+            Products.objects.create(**product_defaults)
 
     return JsonResponse({'message': 'Product information stored successfully.'})
 
@@ -460,3 +481,52 @@ def get_supplier_names(request):
 # }
 
 # insert_order_data(order_data)
+
+
+
+
+
+# def product_insert_db(request):
+#     skus_and_orders = OrderLine.objects.only('SKU', 'Order', 'OrderLineID')
+#     api_fields = ['SKU', 'PrimarySupplier', 'DefaultPrice', 'SupplierId', 'Misc27']
+
+#     for sku in skus_and_orders:
+#         product_info = api_product_response(
+#             {'SKU': sku.SKU},
+#             api_fields,
+#             None
+#         )
+#         try:
+#             order = Order.objects.get(OrderID=sku.Order)
+#         except Order.DoesNotExist:
+#             continue
+#         try:
+#             order_line = OrderLine.objects.get(OrderLineID=sku.OrderLineID)
+#         except OrderLine.DoesNotExist:
+#             continue
+        
+#         product_defaults = {
+#             'order': order,
+#             'OrderLine': order_line,
+#             'sku': sku.SKU,
+#             'misc27': product_info['Item'][0]['Misc27'],
+#             'primary_supplier': product_info['Item'][0]['PrimarySupplier'],
+#             'inventory_id': product_info['Item'][0]['InventoryID'],
+#             'default_price': float(product_info['Item'][0]['DefaultPrice']),
+#             'ack': product_info["Ack"],
+#         }
+        
+#         # Check if the product already exists in the table
+#         existing_product = Products.objects.filter(
+#             Q(order=order) & Q(OrderLine=order_line) & Q(sku=sku.SKU)
+#         )
+
+        
+#         if existing_product:
+#             # Update existing product information
+#             existing_product.update(**product_defaults)
+#         else:
+#             # Create a new product entry
+#             Products.objects.create(**product_defaults)
+
+#     return JsonResponse({'message': 'Product information stored successfully.'})
