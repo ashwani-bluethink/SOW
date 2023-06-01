@@ -7,6 +7,7 @@ urlpatterns = [
     path('insert_update_order_data_in_db/', views.insert_order_data, name='insert_update_order_data_in_db'),
     path("product_insert_db/", views.product_insert_db, name="product_insert_db"),
     path("get_suppliers/", views.get_suppliers, name="get_supplier"),
+    path('get_today_purchase_orders/', views.get_todays_purchase_orders, name='get_today_purchase_orders'),
     
     path("do_false/", views.do_false, name="do_false"),
     

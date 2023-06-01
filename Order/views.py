@@ -202,6 +202,31 @@ def get_suppliers(request):
 
 
 
+from django.http import JsonResponse
+from datetime import datetime, date
+
+def get_todays_purchase_orders(request):
+    today = date.today()
+    purchase_orders = PurchaseOrder.objects.filter(date_created__date=today)
+
+    result = []
+    for purchase_order in purchase_orders:
+        purchase_order_data = {
+            "PurchaseOrderID": purchase_order.PurchaseOrderID,
+            "Alias": purchase_order.Alias,
+            "Supplier": purchase_order.Supplier,
+            "date_created": purchase_order.date_created,
+            "received": purchase_order.received,
+            "submitted": purchase_order.submitted,
+            "tracking_id": purchase_order.tracking_id,
+            "courier": purchase_order.courier,
+            "total_cost": purchase_order.total_cost,
+            "products": list(purchase_order.products.values())
+        }
+        result.append(purchase_order_data)
+
+    return JsonResponse({"Purchase Orders": result})
+
 
 
 def do_false(request):
