@@ -55,7 +55,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'SQW_DASHBOARD.urls'
 TEMPLATE_DIR = os.path.join(CORE_DIR, "templates")
-\
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -133,10 +133,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 
-STATIC_ROOT = os.path.join(CORE_DIR, 'static')
+# STATIC_ROOT = os.path.join(CORE_DIR, 'static')
+# STATIC_URL = '/static/'
+
+
+# STATIC_ROOT = ''
+
 STATIC_URL = '/static/'
 
-
+STATICFILES_DIRS = ('static',)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -15,7 +15,6 @@ class PurchaseOrder(models.Model):
     submitted = models.BooleanField(default=False)
     tracking_id = models.CharField(max_length=255, null=True, blank=True)
     courier = models.CharField(max_length=255, null=True, blank=True)
-    total_cost = models.FloatField()  # Assuming a currency field with two decimal places
     
 
     
