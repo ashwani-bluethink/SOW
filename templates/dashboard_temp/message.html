@@ -1,0 +1,26 @@
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert {{ message.tags }} m-2 custom-alert" role="alert">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">{{ message }}</h4>
+                <button class="btn btn-sm btn-secondary" type="button" onclick="closeAlert(this)">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<style>
+    .custom-alert {
+        background-color: green;
+        color: white;
+    }
+</style>
+
+<script>
+    function closeAlert(element) {
+        const alert = element.closest('.alert');
+        alert.remove();
+    }
+</script>

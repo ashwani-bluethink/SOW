@@ -6,6 +6,9 @@
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
+
+
+
 			
 <div class="content">
 	<div class="panel-header bg-primary-gradient">
@@ -23,6 +26,8 @@
 		</div>
 	</div>
 	
+	{% include 'dashboard_temp/message.html' %}
+
 	<div class="card text-center" style="margin-top:10px;">
 		<div class="card-header">
 			New Purchase Orders
@@ -30,7 +35,7 @@
 		<div class="card-body">
 			<h5 class="card-title">Special title treatment</h5>
 			<p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-			<a href="#" class="btn btn-primary">Force Run Cron</a>
+			<a href="{% url 'Order:Create_purchase_order' %}" class="btn btn-primary">Force Run Cron</a>
 		</div>
 		<div class="card-footer text-muted">
 		</div>

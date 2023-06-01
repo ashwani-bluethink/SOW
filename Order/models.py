@@ -8,6 +8,8 @@ class Order(models.Model):
     DatePlaced = models.DateTimeField()
     OrderStatus = models.CharField(max_length=100)
     SalesChannel = models.CharField(max_length=100)
+    
+    
 
     
     class Meta:
@@ -48,6 +50,7 @@ class Products(models.Model):
     default_price = models.FloatField()
     ack = models.CharField(max_length=10,null=True, blank=True)
     quantities_received = models.IntegerField(null=True, blank=True)
+    po_generated = models.BooleanField(default=False)
     
     
     class Meta:
@@ -55,8 +58,7 @@ class Products(models.Model):
         ordering = ('-sku',)
        
 
-    def __str__(self):
-        return self.sku
+
 
     
     

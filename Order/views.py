@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect,HttpResponseRedirect
+from django.urls import reverse
 from django.http import JsonResponse
 import json
 import requests
@@ -7,7 +8,9 @@ from datetime import datetime
 from django.shortcuts import render
 from .models import Order, OrderLine, Products
 from django.db.models import Q
-
+from warehouse.models import PurchaseOrder
+import time
+from django.contrib import messages
 
 def api_order_response(dict_filter, List_of_OutputSelector=None, new_headers=None):
     url = "https://www.findsports.com.au/do/WS/NetoAPI"
@@ -97,6 +100,11 @@ def api_product_response(dict_filter, List_of_OutputSelector=None, new_headers=N
     return json_data
 
 
+def product_insert_db(request):
+    
+    skus_and_orders = OrderLine.objects.only('SKU', 'Order')
+    api_fields = ['SKU', 'PrimarySupplier',
+                  'DefaultPrice', 'SupplierId', 'Misc27']
 
 
 def product_insert_db(request):
@@ -140,8 +148,71 @@ def product_insert_db(request):
 
 
 
-    
+
+def Create_purchase_order(request):
+    try:
+        suppliers = Products.objects.values('primary_supplier').distinct().order_by('primary_supplier')
+        unique_suppliers = [item['primary_supplier'] for item in suppliers]
+        result = {}
+        for supplier in unique_suppliers:
+            purchase_orders = Products.objects.select_related('order', 'OrderLine').filter(
+                primary_supplier=supplier,
+                po_generated=False
+            )
+            if purchase_orders.exists():  # Check if there are any purchase orders to create
+                orders_list = []
+                total_cost = 0.0
+                for order in purchase_orders:
+                    misc27_sum = sum(float(product.misc27) for product in order.order.products.all())
+                    total_cost += misc27_sum
+                    orders_list.append({
+                        "OrderID": order.order.OrderID,
+                        "OrderLineID": order.OrderLine.OrderLineID,
+                        "SKU": order.sku,
+                        "Misc27": order.misc27,
+                        "PrimarySupplier": order.primary_supplier,
+                        "InventoryID": order.inventory_id,
+                        "DefaultPrice": order.default_price,
+                        "Ack": order.ack,
+                        "QuantitiesReceived": order.quantities_received,
+                        "TotalMisc27": misc27_sum
+                    })
+                
+                # Save purchase order data in the PurchaseOrder model
+                purchase_order = PurchaseOrder.objects.create(
+                    Supplier=supplier,
+                    total_cost=total_cost
+                )
+                
+                
+                
+                # Bulk insertion of products
+                products_to_add = [
+                    product for product in purchase_orders.only('order', 'OrderLine', 'sku', 'misc27')
+                ]
+                purchase_order.products.set(products_to_add)
+                purchase_orders.update(po_generated=True)
+                
+                # Save the changes to the purchase order
+                purchase_order.save()
+                
+
+                result[supplier] = orders_list
+    except Exception as e:
+            message = "Error: {}".format(e)
+            messages.info(request, message)
+            redirect_url = reverse('warehouse:new_purches_order')
+            return HttpResponseRedirect(redirect_url)
+    message = "Purchase orders created successfully."
+    messages.info(request, message)
+    return redirect('warehouse:new_purches_order')
 
 
 
 
+
+
+def do_false(request):
+    products = Products.objects.filter(po_generated=True)
+    products.update(po_generated=False)
+    return JsonResponse({"message": "Updated successfully."})
