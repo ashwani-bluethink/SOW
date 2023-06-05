@@ -1,6 +1,6 @@
 from django.db import models
 import uuid
-from django.db import models
+from warehouse.models import Supplier
 
 class Order(models.Model):
     OrderID = models.CharField(max_length=100,primary_key=True,)
@@ -47,7 +47,7 @@ class Products(models.Model):
     OrderLine = models.OneToOneField(OrderLine, on_delete=models.CASCADE, related_name='products',primary_key=True)
     sku = models.CharField(max_length=100)
     misc27 = models.CharField(max_length=10)
-    primary_supplier = models.CharField(max_length=100)
+    primary_supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='products')
     inventory_id = models.CharField(max_length=10)
     default_price = models.FloatField()
     ack = models.CharField(max_length=10,null=True, blank=True)

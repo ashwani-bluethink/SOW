@@ -117,11 +117,11 @@ def product_insert_db(request):
     api_fields = ['SKU', 'PrimarySupplier',
                   'DefaultPrice', 'SupplierId', 'Misc27']
 
-
+from warehouse.models import Supplier
 def product_insert_db(request):
     skus_and_orders = OrderLine.objects.only('SKU', 'Order', 'OrderLineID')
     api_fields = ['SKU', 'PrimarySupplier', 'DefaultPrice', 'SupplierId', 'Misc27']
-
+   
     # Fetch all products and put them in a dictionary for fast lookups
     existing_products = {product.sku: product for product in Products.objects.all()}
 
@@ -131,13 +131,18 @@ def product_insert_db(request):
             api_fields,
             None
         )
+        if Supplier.objects.filter(name=product_info['Item'][0]['PrimarySupplier'],).exists():
+            supplier = Supplier.objects.get(name=product_info['Item'][0]['PrimarySupplier'])
+        else:
+            supplier = Supplier.objects.create(name=product_info['Item'][0]['PrimarySupplier'])
         
+            
         product_defaults = {
             'order': orderline_instance.Order,
             'OrderLine': orderline_instance,
             'sku': orderline_instance.SKU,
             'misc27': product_info['Item'][0]['Misc27'],
-            'primary_supplier': product_info['Item'][0]['PrimarySupplier'],
+            'primary_supplier': supplier,
             'inventory_id': product_info['Item'][0]['InventoryID'],
             'default_price': float(product_info['Item'][0]['DefaultPrice']),
             'ack': product_info["Ack"],
