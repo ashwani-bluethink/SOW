@@ -43,52 +43,25 @@
 
 	<div class="card text-center" style="margin-top: 10px;">
 		<div class="card-header">
-            Lestest Suppliers
+			Latest Suppliers
 		</div>
 		<div class="card-body">
 			<div class="row">
-				<div class="col-md-2">
-					<a href="#" class="btn btn-primary btn-sm box">
-						<!-- Box content goes here -->
-						<p>This is the content for Box 1.</p>
+				{% for PurchaseOrderID,supplier in lestest_suppliers.items %}
+				<div class="col-md-2" style="padding: 10px;">
+					<a href="{% url 'Order:purchase_order_details' id=PurchaseOrderID %}" class="btn btn-primary btn-sm" style="display: block; width: 200px; height: 50px; padding: 10px; margin: 10px;">
+						<p style="text-align: center; word-wrap: break-word;">{{ supplier }}</p>
 					</a>
 				</div>
-				<div class="col-md-2">
-					<a href="#" class="btn btn-primary btn-sm box">
-						<!-- Box content goes here -->
-						<p>This is the content for Box 2.</p>
-					</a>
-				</div>
-				<div class="col-md-2">
-					<a href="#" class="btn btn-primary btn-sm box">
-						<!-- Box content goes here -->
-						<p>This is the content for Box 3.</p>
-					</a>
-				</div>
-				<div class="col-md-2">
-					<a href="#" class="btn btn-primary btn-sm box">
-						<!-- Box content goes here -->
-						<p>This is the content for Box 4.</p>
-					</a>
-				</div>
-				<div class="col-md-2">
-					<a href="#" class="btn btn-primary btn-sm box">
-						<!-- Box content goes here -->
-						<p>This is the content for Box 5.</p>
-					</a>
-				</div>
-				<div class="col-md-2">
-					<a href="#" class="btn btn-primary btn-sm box">
-						<!-- Box content goes here -->
-						<p>This is the content for Box 6.</p>
-					</a>
-				</div>
+				{% endfor %}
 			</div>
-			
 		</div>
 		<div class="card-footer text-muted">
 		</div>
 	</div>
+	
+	
+	
 	
 	
 

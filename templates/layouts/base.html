@@ -9,10 +9,15 @@
 
 	<meta content='width=device-width, initial-scale=1.0, shrink-to-fit=no' name='viewport' />
 	<link rel="icon" href="/static/assets/img/icon.ico" type="image/x-icon"/>
-	<link rel="canonical" href="https://appseed.us/admin-dashboards/django-dashboard-atlantis-dark">
+	
 
 	<!-- Fonts and icons -->
 	<script src="/static/assets/js/plugin/webfont/webfont.min.js"></script>
+
+	{% comment %} #### pdf export #### {% endcomment %}
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+
+
 	<script>
 		WebFont.load({
 			google: {"families":["Lato:300,400,700,900"]},
@@ -27,7 +32,7 @@
 	<!-- CSS Files -->
 	<link rel="stylesheet" href="/static/assets/css/bootstrap.min.css">
 	<link rel="stylesheet" href="/static/assets/css/atlantis.css">
-
+	
 	{% comment %} <!-- CSS Just for demo purpose, don't include it in your project -->
 	<link rel="stylesheet" href="/static/assets/css/demo.css"> {% endcomment %}
 

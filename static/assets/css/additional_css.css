@@ -1,0 +1,41 @@
+
+/* ####po stock update .html################# */
+
+.list-group-container {
+    max-height: 250px; /* Adjust the height as per your requirement */
+    overflow-y: auto;
+}
+.custom-link.custom-link-darkgreen {
+    background-color: darkgreen;
+    color: white;
+    font-size: 18px;
+}
+
+/* ######################### */
+.card-header {
+    display: flex;
+    align-items: center;
+  }
+  
+  .card-title {
+    margin-right: 10px;
+  }
+  
+  #image-button {
+    border: none;
+    background-color: transparent;
+    padding: 0;
+    cursor: pointer;
+  }
+  
+  #image-button:focus {
+    outline: none;
+  }
+  
+  #image-button img {
+    border-radius: 50%; /* Applies circular shape */
+    width: 50px; /* Adjust the size of the image as desired */
+    height: 50px; /* Adjust the size of the image as desired */
+  }
+  
+  

@@ -26,6 +26,8 @@ class OrderLine(models.Model):
     Quantity = models.IntegerField()
     SKU = models.CharField(max_length=100)
     eBay = models.CharField(max_length=100,null=True, blank=True)
+    quantities_received = models.IntegerField(default=0)
+    
     
    
 
@@ -49,8 +51,8 @@ class Products(models.Model):
     inventory_id = models.CharField(max_length=10)
     default_price = models.FloatField()
     ack = models.CharField(max_length=10,null=True, blank=True)
-    quantities_received = models.IntegerField(null=True, blank=True)
     po_generated = models.BooleanField(default=False)
+    
     
     
     class Meta:

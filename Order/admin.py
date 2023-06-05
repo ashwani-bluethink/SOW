@@ -16,7 +16,7 @@ class OrderAdmin(admin.ModelAdmin):
     
 @admin.register(OrderLine)
 class OrderLineAdmin(admin.ModelAdmin):
-    list_display = ('OrderLineID', 'Order', 'Quantity', 'SKU', 'eBay')
+    list_display = ('OrderLineID', 'Order', 'Quantity', 'SKU', 'eBay', 'quantities_received')
     list_filter = ('OrderLineID', 'Order', 'Quantity', 'SKU', 'eBay')
     search_fields = ('OrderLineID', 'Order', 'Quantity', 'SKU', 'eBay')
     ordering = ('OrderLineID', 'Order', 'Quantity', 'SKU', 'eBay')
@@ -24,7 +24,7 @@ class OrderLineAdmin(admin.ModelAdmin):
     
 @admin.register(Products)
 class ProductsAdmin(admin.ModelAdmin):
-    list_display = ('order','order', 'OrderLine','sku', 'misc27', 'primary_supplier', 'inventory_id', 'default_price', 'ack')
+    list_display = ('order','order', 'OrderLine','sku', 'misc27','primary_supplier', 'inventory_id', 'default_price', 'ack','po_generated')
     list_filter = ('order', 'sku', 'misc27', 'primary_supplier', 'inventory_id', 'default_price')
     search_fields = ('order', 'sku', 'misc27', 'primary_supplier', 'inventory_id', 'default_price')
     ordering = ('order', 'sku', 'misc27', 'primary_supplier', 'inventory_id', 'default_price')

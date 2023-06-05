@@ -11,6 +11,17 @@ from django.db.models import Q
 from warehouse.models import PurchaseOrder
 import time
 from django.contrib import messages
+from datetime import datetime, date
+import pandas as pd
+import openpyxl
+import os
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
+
+
+
+
 
 def api_order_response(dict_filter, List_of_OutputSelector=None, new_headers=None):
     url = "https://www.findsports.com.au/do/WS/NetoAPI"
@@ -150,69 +161,264 @@ def product_insert_db(request):
 
 
 def Create_purchase_order(request):
-    try:
-        suppliers = Products.objects.values('primary_supplier').distinct().order_by('primary_supplier')
-        unique_suppliers = [item['primary_supplier'] for item in suppliers]
-        result = {}
-        for supplier in unique_suppliers:
-            purchase_orders = Products.objects.select_related('order', 'OrderLine').filter(
-                primary_supplier=supplier,
-                po_generated=False
-            )
-            if purchase_orders.exists():  # Check if there are any purchase orders to create
-                orders_list = []
-                total_cost = 0.0
-                for order in purchase_orders:
-                    misc27_sum = sum(float(product.misc27) for product in order.order.products.all())
-                    total_cost += misc27_sum
-                    orders_list.append({
-                        "OrderID": order.order.OrderID,
-                        "OrderLineID": order.OrderLine.OrderLineID,
-                        "SKU": order.sku,
-                        "Misc27": order.misc27,
-                        "PrimarySupplier": order.primary_supplier,
-                        "InventoryID": order.inventory_id,
-                        "DefaultPrice": order.default_price,
-                        "Ack": order.ack,
-                        "QuantitiesReceived": order.quantities_received,
-                        "TotalMisc27": misc27_sum
-                    })
+    # try:
+    suppliers = Products.objects.values('primary_supplier')
+    # unique_suppliers = [item['primary_supplier'] for item in suppliers]
+    print(suppliers)
+    
+    # result = {}
+    #     for supplier in unique_suppliers:
+    #         purchase_orders = Products.objects.select_related('order', 'OrderLine').filter(
+    #             primary_supplier=supplier,
+    #             po_generated=False
+    #         )
+    #         if purchase_orders.exists():  # Check if there are any purchase orders to create
+    #             orders_list = []
+    #             total_cost = 0.0
+    #             for order in purchase_orders:
+    #                 misc27_sum = sum(float(product.misc27) for product in order.order.products.all())
+    #                 total_cost += misc27_sum
+    #                 orders_list.append({
+    #                     "OrderID": order.order.OrderID,
+    #                     "OrderLineID": order.OrderLine.OrderLineID,
+    #                     "SKU": order.sku,
+    #                     "Misc27": order.misc27,
+    #                     "PrimarySupplier": order.primary_supplier,
+    #                     "InventoryID": order.inventory_id,
+    #                     "DefaultPrice": order.default_price,
+    #                     "Ack": order.ack,
+    #                     "TotalMisc27": misc27_sum
+    #                 })
                 
-                # Save purchase order data in the PurchaseOrder model
-                purchase_order = PurchaseOrder.objects.create(
-                    Supplier=supplier,
-                    total_cost=total_cost
-                )
+    #             # Save purchase order data in the PurchaseOrder model
+    #             purchase_order = PurchaseOrder.objects.create(
+    #                 Supplier=supplier,
+    #                 total_cost=total_cost
+    #             )
                 
                 
                 
-                # Bulk insertion of products
-                products_to_add = [
-                    product for product in purchase_orders.only('order', 'OrderLine', 'sku', 'misc27')
-                ]
-                purchase_order.products.set(products_to_add)
-                purchase_orders.update(po_generated=True)
+    #             # Bulk insertion of products
+    #             products_to_add = [
+    #                 product for product in purchase_orders.only('order', 'OrderLine', 'sku', 'misc27')
+    #             ]
+    #             purchase_order.products.set(products_to_add)
+    #             purchase_orders.update(po_generated=True)
                 
-                # Save the changes to the purchase order
-                purchase_order.save()
+    #             # Save the changes to the purchase order
+    #             purchase_order.save()
                 
 
-                result[supplier] = orders_list
-    except Exception as e:
-            message = "Error: {}".format(e)
-            messages.info(request, message)
-            redirect_url = reverse('warehouse:new_purches_order')
-            return HttpResponseRedirect(redirect_url)
-    message = "Purchase orders created successfully."
-    messages.info(request, message)
-    return redirect('warehouse:new_purches_order')
-
-
-
-
-
+    #             result[supplier] = orders_list
+    # except Exception as e:
+    #         message = "Error: {}".format(e)
+    #         messages.info(request, message)
+    #         redirect_url = reverse('Order:new_purches_order')
+    #         return HttpResponseRedirect(redirect_url)
+    # message = "Purchase orders created successfully."
+    # messages.info(request, message)
+    # return redirect('Order:new_purches_order')
 
 def do_false(request):
     products = Products.objects.filter(po_generated=True)
     products.update(po_generated=False)
     return JsonResponse({"message": "Updated successfully."})
+
+
+
+
+
+def Dashboard(request):
+    return render(request, 'dashboard_temp/index.html')
+
+
+def New_Purchase_Order(request):
+    today = date.today()
+    purchase_orders = PurchaseOrder.objects.filter(date_created__date=today)
+
+    lestest_suppliers = {}
+    for purchase_order in purchase_orders:
+        lestest_suppliers[purchase_order.PurchaseOrderID] = purchase_order.Supplier
+    context={
+        'lestest_suppliers':lestest_suppliers
+    }
+    return render(request, 'dashboard_temp/new_purches_order.html',context)
+
+
+def Purchase_Order_Details(request,id):
+    purchase_order = PurchaseOrder.objects.get(PurchaseOrderID=id)
+    PO_Details = {
+        'PurchaseOrderID':purchase_order.PurchaseOrderID,
+        'Alias':purchase_order.Alias,
+        'Supplier':purchase_order.Supplier,
+        'date_created':purchase_order.date_created,
+        'tracking_id':purchase_order.tracking_id,
+        'courier':purchase_order.courier,
+        'total_cost':purchase_order.total_cost,
+    }
+    PO_Orders=purchase_order.products.all()
+    
+    context={
+        'PO_Details':PO_Details,
+        'PO_Orders':PO_Orders,
+    }
+    return render(request, 'dashboard_temp/purchase_order_details.html', context)
+
+
+
+
+def PO_Stock_Update(request):
+    
+    
+    if request.method == 'POST':
+        order_line_ids = request.POST.getlist('OrderLineID')
+        quantities_received = request.POST.getlist('quantities_received')
+        
+        for order_line_id, quantity_received in zip(order_line_ids, quantities_received):
+            order_line = OrderLine.objects.get(OrderLineID=order_line_id)
+            if quantity_received:
+                order_line.quantities_received = int(quantity_received)
+            else:
+                order_line.quantities_received = 0 
+            order_line.save()
+        
+    
+    context = {}
+    today = date.today()
+    purchase_orders = PurchaseOrder.objects.filter(date_created__date=today)
+
+    latest_suppliers = {}
+    for purchase_order in purchase_orders:
+        latest_suppliers[purchase_order.PurchaseOrderID] = purchase_order.Supplier
+    
+    first_Purchase_id = next(iter(latest_suppliers.keys()), None)
+    Purchase_id = request.GET.get('Purchase_id')
+    global PO_id 
+    if Purchase_id:
+        try:
+            purchase_order = PurchaseOrder.objects.get(PurchaseOrderID=Purchase_id)
+            PO_id = Purchase_id
+        except:
+            messages.info(request, "Pourches Order not available.")
+            return redirect('Order:new_purches_order')
+        
+    else:
+        try:
+            purchase_order = PurchaseOrder.objects.get(PurchaseOrderID=first_Purchase_id)
+            PO_id=first_Purchase_id
+        except:
+            messages.info(request, "Pourches Order not available.")
+            return redirect('Order:new_purches_order')
+        
+    
+    if purchase_order:
+        PO_Details = {
+            'PurchaseOrderID': purchase_order.PurchaseOrderID,
+            'Alias': purchase_order.Alias,
+            'Supplier': purchase_order.Supplier,
+            'date_created': purchase_order.date_created,
+            'tracking_id': purchase_order.tracking_id,
+            'courier': purchase_order.courier,
+            'total_cost': purchase_order.total_cost,
+        }
+        PO_Orders = purchase_order.products.all()
+        context = {
+            "latest_suppliers": latest_suppliers,
+            "PO_Orders": PO_Orders,
+            "PO_Details": PO_Details,
+            "purchase_order_id": PO_id,
+        }
+    return render(request, 'dashboard_temp/PO_Stock_Update.html', context)
+
+
+
+
+
+
+
+
+
+def po_stock_update_excel(request):
+    if request.method == 'POST':
+        excel_file = request.FILES['excel_file']
+        purchase_order_id = request.POST.get('PurchaseOrderID')
+        file_extension = os.path.splitext(excel_file.name)[1].lower()
+        try:
+            # Read the Excel file using pandas with appropriate engine based on file extension
+            if file_extension == '.xls':
+                df = pd.read_excel(excel_file, engine='xlrd')
+            elif file_extension == '.xlsx':
+                df = pd.read_excel(excel_file, engine='openpyxl')
+            else:
+                messages.error(request, "Invalid file format. Only .xls and .xlsx are supported.")
+                redirect_url = reverse('Order:po_stock_update')
+                return redirect(redirect_url)
+            if 'SKU' in df.columns and 'Stock' in df.columns:
+                for index, row in df.iterrows():
+                    sku = row['SKU']
+                    stock = row['Stock']
+                    # Update the stock based on the SKU
+                    order_lines = OrderLine.objects.filter(SKU=sku)
+                    for order_line in order_lines:
+                        order_line.quantities_received = stock
+                        order_line.save()
+
+                url = reverse('Order:po_stock_update')
+                url_with_params = url + f'?Purchase_id={purchase_order_id}'
+                return redirect(url_with_params)
+
+            else:
+                messages.error(request, "Invalid Excel file. Column names are missing.")
+                url = reverse('Order:po_stock_update')
+                url_with_params = url + f'?Purchase_id={purchase_order_id}'
+                return redirect(url_with_params)
+            
+        except Exception as e:
+            messages.error(request, "Error: {}".format(e))
+            url = reverse('Order:po_stock_update')
+            url_with_params = url + f'?Purchase_id={purchase_order_id}'
+            return redirect(url_with_params)
+
+    messages.info(request, "Invalid request.")
+    url = reverse('Order:po_stock_update')
+    url_with_params = url + f'?Purchase_id={purchase_order_id}'
+    return redirect(url_with_params)
+
+
+
+
+
+
+
+def generate_pdf(request,id):
+    
+    purchase_order = PurchaseOrder.objects.get(PurchaseOrderID=id)
+    purchase_order_id = id
+    PO_Details = {
+        'PurchaseOrderID':purchase_order.PurchaseOrderID,
+        'Alias':purchase_order.Alias,
+        'Supplier':purchase_order.Supplier,
+        'date_created':purchase_order.date_created,
+        'tracking_id':purchase_order.tracking_id,
+        'courier':purchase_order.courier,
+        'total_cost':purchase_order.total_cost,
+        "submitted":purchase_order.submitted,
+    }
+    PO_Orders=purchase_order.products.all()
+    total_quantity = sum([order.OrderLine.quantities_received for order in PO_Orders])
+
+    
+    context={
+        'PO_Details':PO_Details,
+        'PO_Orders':PO_Orders,
+        'purchase_order_id':purchase_order_id,
+        'total_quantity':total_quantity,
+    }
+    html_string = render_to_string('dashboard_temp/pdf.html',context=context)
+    pdf_file = HTML(string=html_string).write_pdf()
+    response = HttpResponse(content_type='application/pdf')
+    file_name = f"Purchase_Order_{purchase_order_id}.pdf"
+    response['Content-Disposition'] = 'attachment; file_name="{}"'.format(file_name)
+    response.write(pdf_file)
+
+    return response

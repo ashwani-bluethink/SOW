@@ -3,7 +3,9 @@
 {% block title %} Dashboard {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<link rel="stylesheet" href="/static/assets/css/additional_css.css"> 
+{% endblock stylesheets %}
 
 {% block content %}
 			
@@ -25,126 +27,124 @@
         
         <div class="container-fluid">
             <div class="row">
+
+                
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Multi Filter Select</h4>
+                            <h4 class="card-title">Purchase Order Details</h4>
                         </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table id="multi-filter-select" class="display table table-striped table-hover" >
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            
-                                        </tr>
-                                    </thead>
-                                    <tfoot>
-                                        <tr>
-                                            <th>Name</th>
-                                            
-                                        </tr>
-                                    </tfoot>
-                                    <tbody>
-                                        <tr>
-                                            <td>Tiger Nixon</td>
-                                            
-                                        </tr>
-                                        <tr>
-                                            <td>Garrett Winters</td>
-                                            
-                                        </tr>
-                                      
-                                    </tbody>
-                                </table>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">PO ID</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.PurchaseOrderID}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Creadetd_Date</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.date_created}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Supplier</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.Supplier}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Cost</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.total_cost}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Tracking ID</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.tracking_id}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Courier</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.courier}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Alias</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.Alias}}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                
+                
                 <div class="col-md-8">
                     <div class="card">
                         <div class="card-header">
-                            <h4 class="card-title">Multi Filter Select</h4>
+                            <h4 class="card-title"></h4>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="multi-filter-select1" class="display table table-striped table-hover" >
+                                <table id="multi-filter-select1" class="display table table-striped table-hover">
                                     <thead>
                                         <tr>
-                                            <th>Name</th>
-                                            <th>Position</th>
-                                            <th>Office</th>
-                                            <th>Age</th>
-                                            <th>Start date</th>
-                                            <th>Salary</th>
+                                            <th>Order Line</th>
+                                            <th>SKU</th>
+                                            <th>Part No</th>
+                                            <th>Qty</th>
+                                            <th>Stock</th>
+                                            
                                         </tr>
                                     </thead>
                                     <tfoot>
                                         <tr>
-                                            <th>Name</th>
-                                            <th>Position</th>
-                                            <th>Office</th>
-                                            <th>Age</th>
-                                            <th>Start date</th>
-                                            <th>Salary</th>
+                                            <th>Order Line</th>
+                                            <th>SKU</th>
+                                            <th>Part No</th>
+                                            <th>Qty</th>
+                                            <th>Stock</th>
                                         </tr>
                                     </tfoot>
                                     <tbody>
+                                        {% for data in PO_Orders %}
                                         <tr>
-                                            <td>Tiger Nixon</td>
-                                            <td>System Architect</td>
-                                            <td>Edinburgh</td>
-                                            <td>61</td>
-                                            <td>2011/04/25</td>
-                                            <td>$320,800</td>
+                                            <td>{{ data.OrderLine.OrderLineID }}</td>
+                                            <td>{{ data.sku }}</td>
+                                            <td></td>
+                                            <td>{{ data.OrderLine.Quantity }}</td>
+                                            <td>{{ data.quantities_received }}</td>
                                         </tr>
-                                        <tr>
-                                            <td>Garrett Winters</td>
-                                            <td>Accountant</td>
-                                            <td>Tokyo</td>
-                                            <td>63</td>
-                                            <td>2011/07/25</td>
-                                            <td>$170,750</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Ashton Cox</td>
-                                            <td>Junior Technical Author</td>
-                                            <td>San Francisco</td>
-                                            <td>66</td>
-                                            <td>2009/01/12</td>
-                                            <td>$86,000</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Cedric Kelly</td>
-                                            <td>Senior Javascript Developer</td>
-                                            <td>Edinburgh</td>
-                                            <td>22</td>
-                                            <td>2012/03/29</td>
-                                            <td>$433,060</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Airi Satou</td>
-                                            <td>Accountant</td>
-                                            <td>Tokyo</td>
-                                            <td>33</td>
-                                            <td>2008/11/28</td>
-                                            <td>$162,700</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Brielle Williamson</td>
-                                            <td>Integration Specialist</td>
-                                            <td>New York</td>
-                                            <td>61</td>
-                                            <td>2012/12/02</td>
-                                            <td>$372,000</td>
-                                        </tr>
-                                      
+                                        {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
+               
+                
+
+                
             </div>
         </div>
     </div>

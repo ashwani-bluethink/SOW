@@ -46,7 +46,7 @@
 							<div class="collapse" id="dashboard">
 								<ul class="nav nav-collapse">
 									<li>
-										<a href="{% url 'warehouse:dashboard'%}">
+										<a href="{% url 'Order:dashboard'%}">
 											<span class="sub-item">Dashboard</span>
 										</a>
 									</li>
@@ -71,13 +71,14 @@
 								<ul class="nav nav-collapse">
 									
 									<li>
-										<a href="{% url 'warehouse:new_purches_order'%}">
+										<a href="{% url 'Order:new_purches_order'%}">
 											<span class="sub-item">New Purchase Order</span>
 										</a>
 									</li>
+
 									<li>
-										<a href="{% url 'warehouse:Order_details'%}">
-											<span class="sub-item">Order Details</span>
+										<a href="{% url 'Order:po_stock_update'%}">
+											<span class="sub-item">PO Stock Update</span>
 										</a>
 									</li>
 									
@@ -93,7 +94,7 @@
 							</a>
 							<div class="collapse" id="sidebarLayouts">
 								<ul class="nav nav-collapse">
-									<li>
+									{% comment %} <li>
 										<a href="/layout-sidebar-style-1.html">
 											<span class="sub-item">Sidebar Style 1</span>
 										</a>
@@ -102,7 +103,7 @@
 										<a href="/layout-overlay-sidebar.html">
 											<span class="sub-item">Overlay Sidebar</span>
 										</a>
-									</li>
+									</li> {% endcomment %}
 									
 								</ul>
 							</div>

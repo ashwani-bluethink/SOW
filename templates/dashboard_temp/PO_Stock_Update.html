@@ -1,0 +1,318 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<link rel="stylesheet" href="/static/assets/css/additional_css.css"> 
+{% endblock stylesheets %}
+
+{% block content %}
+			
+	<div class="content">
+		<div class="panel-header bg-primary-gradient">
+			<div class="page-inner py-5">
+				<div class="d-flex align-items-left align-items-md-center flex-column flex-md-row">
+					<div>
+						<h2 class="text-white pb-2 fw-bold">Dashboard</h2>
+						<h5 class="text-white op-7 mb-2">Free Bootstrap 4 Admin Dashboard</h5>
+					</div>
+					<div class="ml-md-auto py-2 py-md-0">
+						<a href="#" class="btn btn-white btn-border btn-round mr-2">Manage</a>
+						<a href="#" class="btn btn-secondary btn-round">Add Customer</a>
+					</div>
+				</div>
+			</div>
+		</div>
+        {% include 'dashboard_temp/message.html' %}
+
+        <div class="container-fluid">
+            <div class="row">
+
+                
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Supplier List</h4>
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="list-group-container">
+                                    <div class="list-group">
+                                        {% for PurchaseOrderID,supplier in latest_suppliers.items %}
+                                        <a href="/api/v1/Orderapi/po_stock_update/?Purchase_id={{PurchaseOrderID}}" class="list-group-item list-group-item-action" style="background-color: darkgreen; color: white; font-size: 18px;">{{ supplier }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title">Purchase Order Details</h4>
+                            <button id="image-button">
+                                <a href="/api/v1/Orderapi/generate-pdf/{{purchase_order_id}}">
+                                    <img src="/static/assets/img/myimage/Button-Download.png" alt="Button Image">
+                                  </a>
+                                  
+                            </button>
+                          </div>
+                          
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">PO ID</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.PurchaseOrderID}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Creadetd_Date</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.date_created}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Supplier</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.Supplier}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Cost</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.total_cost}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Tracking ID</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.tracking_id}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Courier</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.courier}}</p>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-sm-6">
+                                        <h5 class="card-title">Alias</h5>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p class="card-text">{{PO_Details.Alias}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+               
+                
+
+                
+            </div>
+        </div>
+
+
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title"></h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <form  id="updateForm" method="post" action="{% url 'Order:po_stock_update' %}">
+                            {% csrf_token %}
+                            <table id="multi-filter-select1" class="display table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order Line</th>
+                                        <th>SKU</th>
+                                        <th>Part No</th>
+                                        <th>Qty</th>
+                                        <th>Stock</th>
+                                       
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>Order Line</th>
+                                        <th>SKU</th>
+                                        <th>Part No</th>
+                                        <th>Qty</th>
+                                        <th>Stock</th>
+                                        
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                                    {% for data in PO_Orders %}
+                                    <tr>
+                                        <td>{{ data.OrderLine.OrderLineID }}</td>
+                                        <td>{{ data.sku }}</td>
+                                        <td></td>
+                                        <td>{{ data.OrderLine.Quantity }}</td>
+                                        <td>
+                                            <input type="number" name="quantities_received" value="{{ data.OrderLine.quantities_received }}">
+                                            <input type="hidden" name="OrderLineID" value="{{ data.OrderLine.OrderLineID }}">
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <br>
+                            <div class="text-right">
+                                <button type="submit" class="btn btn-success">Update</button>
+                            </div>
+                        </form>
+                        <form  method="post" action="{% url 'Order:po_stock_update_excel' %}" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="file" name="excel_file" accept=".xlsx, .xls">
+                            <input type="hidden" name="PurchaseOrderID" value="{{PO_Details.PurchaseOrderID}}">
+                            
+                            <button type="submit" class="btn btn-danger">Stock Update By Excel </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+       
+
+    </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+
+	<!-- Atlantis DEMO methods, don't include it in your project! -->
+	{% comment %} <script src="/static/assets/js/setting-demo2.js"></script> {% endcomment %}
+	<script >
+		$(document).ready(function() {
+			$('#basic-datatables').DataTable({
+			});
+
+			$('#multi-filter-select').DataTable( {
+				"pageLength": 5,
+				initComplete: function () {
+					this.api().columns().every( function () {
+						var column = this;
+						var select = $('<select class="form-control"><option value=""></option></select>')
+						.appendTo( $(column.footer()).empty() )
+						.on( 'change', function () {
+							var val = $.fn.dataTable.util.escapeRegex(
+								$(this).val()
+								);
+
+							column
+							.search( val ? '^'+val+'$' : '', true, false )
+							.draw();
+						} );
+
+						column.data().unique().sort().each( function ( d, j ) {
+							select.append( '<option value="'+d+'">'+d+'</option>' )
+						} );
+					} );
+				}
+			});
+
+			// Add Row
+			$('#add-row').DataTable({
+				"pageLength": 5,
+			});
+
+			var action = '<td> <div class="form-button-action"> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"> <i class="fa fa-edit"></i> </button> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"> <i class="fa fa-times"></i> </button> </div> </td>';
+
+			$('#addRowButton').click(function() {
+				$('#add-row').dataTable().fnAddData([
+					$("#addName").val(),
+					$("#addPosition").val(),
+					$("#addOffice").val(),
+					action
+					]);
+				$('#addRowModal').modal('hide');
+
+			});
+		});
+	</script>
+
+
+
+    <script >
+		$(document).ready(function() {
+			$('#basic-datatables').DataTable({
+			});
+
+			$('#multi-filter-select1').DataTable( {
+				"pageLength": 5,
+				initComplete: function () {
+					this.api().columns().every( function () {
+						var column = this;
+						var select = $('<select class="form-control"><option value=""></option></select>')
+						.appendTo( $(column.footer()).empty() )
+						.on( 'change', function () {
+							var val = $.fn.dataTable.util.escapeRegex(
+								$(this).val()
+								);
+
+							column
+							.search( val ? '^'+val+'$' : '', true, false )
+							.draw();
+						} );
+
+						column.data().unique().sort().each( function ( d, j ) {
+							select.append( '<option value="'+d+'">'+d+'</option>' )
+						} );
+					} );
+				}
+			});
+
+			// Add Row
+			$('#add-row').DataTable({
+				"pageLength": 5,
+			});
+
+			var action = '<td> <div class="form-button-action"> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"> <i class="fa fa-edit"></i> </button> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"> <i class="fa fa-times"></i> </button> </div> </td>';
+
+			$('#addRowButton').click(function() {
+				$('#add-row').dataTable().fnAddData([
+					$("#addName").val(),
+					$("#addPosition").val(),
+					$("#addOffice").val(),
+					action
+					]);
+				$('#addRowModal').modal('hide');
+
+			});
+		});
+	</script>
+
+
+    
+    <script>
+        // Get the current URL
+        var currentUrl = window.location.href;
+      
+        // Set the form's action attribute to the current URL
+        document.getElementById("updateForm").action = currentUrl;
+      </script>
+
+      
+
+{% endblock javascripts %}
