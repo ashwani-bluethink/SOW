@@ -35,7 +35,7 @@
 		<div class="card-body">
 			<h5 class="card-title">Special title treatment</h5>
 			<p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-			<a href="{% url 'Order:Create_purchase_order' %}" class="btn btn-primary">Force Run Cron</a>
+			<a href="{% url 'Order:insert_update_order_data_in_db' %}" class="btn btn-primary">Force Run Cron</a>
 		</div>
 		<div class="card-footer text-muted">
 		</div>
@@ -47,10 +47,10 @@
 		</div>
 		<div class="card-body">
 			<div class="row">
-				{% for PurchaseOrderID,supplier in lestest_suppliers.items %}
+				{% for supplier in lestest_suppliers %}
 				<div class="col-md-2" style="padding: 10px;">
-					<a href="{% url 'Order:purchase_order_details' id=PurchaseOrderID %}" class="btn btn-primary btn-sm" style="display: block; width: 200px; height: 50px; padding: 10px; margin: 10px;">
-						<p style="text-align: center; word-wrap: break-word;">{{ supplier }}</p>
+					<a href="{% url 'Order:purchase_orders' id=supplier.id %}" class="btn btn-primary btn-sm" style="display: block; width: 200px; height: 50px; padding: 10px; margin: 10px;">
+						<p style="text-align: center; word-wrap: break-word;">{{ supplier.name }}</p>
 					</a>
 				</div>
 				{% endfor %}

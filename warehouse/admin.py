@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import PurchaseOrder
+from .models import *
 
 @admin.register(PurchaseOrder)
 class PurchaseOrderAdmin(admin.ModelAdmin):
@@ -14,4 +14,10 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
         return ", ".join([str(product) for product in obj.products.all()])
     display_products.short_description = 'Products'
 
+
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    list_filter = ('name',)
+    search_fields = ('name',)
     

@@ -80,7 +80,7 @@ def insert_order_data(request):
 
             order_line, created = OrderLine.objects.update_or_create(
                 OrderLineID=order_line_id, defaults=order_line_data)
-    return JsonResponse({'message': 'Data inserted successfully'})
+    return redirect('Order:product_insert_db')
 
 
 def api_product_response(dict_filter, List_of_OutputSelector=None, new_headers=None):
@@ -111,11 +111,11 @@ def api_product_response(dict_filter, List_of_OutputSelector=None, new_headers=N
     return json_data
 
 
-def product_insert_db(request):
+# def product_insert_db(request):
     
-    skus_and_orders = OrderLine.objects.only('SKU', 'Order')
-    api_fields = ['SKU', 'PrimarySupplier',
-                  'DefaultPrice', 'SupplierId', 'Misc27']
+#     skus_and_orders = OrderLine.objects.only('SKU', 'Order')
+#     api_fields = ['SKU', 'PrimarySupplier',
+#                   'DefaultPrice', 'SupplierId', 'Misc27']
 
 from warehouse.models import Supplier
 def product_insert_db(request):
@@ -136,7 +136,12 @@ def product_insert_db(request):
         else:
             supplier = Supplier.objects.create(name=product_info['Item'][0]['PrimarySupplier'])
         
-            
+        supplier.new_order = True
+        supplier.order_date = orderline_instance.Order.DatePlaced
+        supplier.save()
+        if orderline_instance.Order.supplier is None:
+            orderline_instance.Order.supplier = supplier
+            orderline_instance.save()
         product_defaults = {
             'order': orderline_instance.Order,
             'OrderLine': orderline_instance,
@@ -163,66 +168,73 @@ def product_insert_db(request):
     return JsonResponse({'message': 'Product information stored successfully.'})
 
 
+def perchase_ourder_list(supplier):
+    products = Products.objects.filter(primary_supplier=supplier)
+    order_list = []
+    total_cost = 0.0
+    for product in products:
+        if PurchaseOrder.objects.filter(
+            products=product, Supplier=supplier).exists():
+            order = PurchaseOrder.objects.get(products=product, Supplier=supplier)
+            misc27_sum = sum(float(product.misc27) for product in order.products.all())
+            total_cost += misc27_sum
+            # order_list.append({
+            #             "OrderID": order.order.OrderID,
+            #             "OrderLineID": order.OrderLine.OrderLineID,
+            #             "SKU": order.sku,
+            #             "Misc27": order.misc27,
+            #             "PrimarySupplier": order.primary_supplier.name,
+            #             "InventoryID": order.inventory_id,
+            #             "DefaultPrice": order.default_price,
+            #             "Ack": order.ack,
+            #             "TotalMisc27": misc27_sum
+            #         })
+            
+        else:
+            order = PurchaseOrder.objects.create(
+                 Supplier=supplier,
+                    total_cost=total_cost
+                )
+            order.products.add(product)
+            order.save()
+        for product in order.products.all():
+            order_list.append({
+                        "OrderID": product.order.OrderID,
+                        "OrderLineID": product.OrderLine.OrderLineID,
+                        "SKU": product.sku,
+                        "Misc27": product.misc27,
+                        "PrimarySupplier": product.primary_supplier.name,
+                        "InventoryID": product.inventory_id,
+                        "DefaultPrice": product.default_price,
+                        "Ack": product.ack,
+                        "TotalMisc27": product.misc27
+                })
+    return order_list
+            
+        
+
+
+
 
 
 def Create_purchase_order(request):
-    # try:
-    suppliers = Products.objects.values('primary_supplier')
-    # unique_suppliers = [item['primary_supplier'] for item in suppliers]
-    print(suppliers)
-    
-    # result = {}
-    #     for supplier in unique_suppliers:
-    #         purchase_orders = Products.objects.select_related('order', 'OrderLine').filter(
-    #             primary_supplier=supplier,
-    #             po_generated=False
-    #         )
-    #         if purchase_orders.exists():  # Check if there are any purchase orders to create
-    #             orders_list = []
-    #             total_cost = 0.0
-    #             for order in purchase_orders:
-    #                 misc27_sum = sum(float(product.misc27) for product in order.order.products.all())
-    #                 total_cost += misc27_sum
-    #                 orders_list.append({
-    #                     "OrderID": order.order.OrderID,
-    #                     "OrderLineID": order.OrderLine.OrderLineID,
-    #                     "SKU": order.sku,
-    #                     "Misc27": order.misc27,
-    #                     "PrimarySupplier": order.primary_supplier,
-    #                     "InventoryID": order.inventory_id,
-    #                     "DefaultPrice": order.default_price,
-    #                     "Ack": order.ack,
-    #                     "TotalMisc27": misc27_sum
-    #                 })
-                
-    #             # Save purchase order data in the PurchaseOrder model
-    #             purchase_order = PurchaseOrder.objects.create(
-    #                 Supplier=supplier,
-    #                 total_cost=total_cost
-    #             )
-                
-                
-                
-    #             # Bulk insertion of products
-    #             products_to_add = [
-    #                 product for product in purchase_orders.only('order', 'OrderLine', 'sku', 'misc27')
-    #             ]
-    #             purchase_order.products.set(products_to_add)
-    #             purchase_orders.update(po_generated=True)
-                
-    #             # Save the changes to the purchase order
-    #             purchase_order.save()
-                
+    try:
+        result = {}
+        # import pdb; pdb.set_trace()
+        suppliers = Supplier.objects.all()
+        for supplier in suppliers:
+            orders_list = perchase_ourder_list(supplier)
+            result[supplier.name] = orders_list
+    except Exception as e:
+            message = "Error: {}".format(e)
+            messages.info(request, message)
+            redirect_url = reverse('Order:new_purches_order')
+            return HttpResponseRedirect(redirect_url)
+    message = "Purchase orders created successfully."
+    messages.info(request, message)
+    return redirect('Order:new_purches_order')
 
-    #             result[supplier] = orders_list
-    # except Exception as e:
-    #         message = "Error: {}".format(e)
-    #         messages.info(request, message)
-    #         redirect_url = reverse('Order:new_purches_order')
-    #         return HttpResponseRedirect(redirect_url)
-    # message = "Purchase orders created successfully."
-    # messages.info(request, message)
-    # return redirect('Order:new_purches_order')
+
 
 def do_false(request):
     products = Products.objects.filter(po_generated=True)
@@ -237,13 +249,22 @@ def Dashboard(request):
     return render(request, 'dashboard_temp/index.html')
 
 
+# def New_Purchase_Order(request):
+#     today = date.today()
+#     purchase_orders = PurchaseOrder.objects.filter(date_created__date=today)
+
+#     lestest_suppliers = {}
+#     for purchase_order in purchase_orders:
+#         lestest_suppliers[purchase_order.id] = purchase_order.Supplier.name
+#     context={
+#         'lestest_suppliers':lestest_suppliers
+#     }
+#     return render(request, 'dashboard_temp/new_purches_order.html',context)
+
+
 def New_Purchase_Order(request):
     today = date.today()
-    purchase_orders = PurchaseOrder.objects.filter(date_created__date=today)
-
-    lestest_suppliers = {}
-    for purchase_order in purchase_orders:
-        lestest_suppliers[purchase_order.PurchaseOrderID] = purchase_order.Supplier
+    lestest_suppliers = Supplier.objects.filter(new_order=True)
     context={
         'lestest_suppliers':lestest_suppliers
     }
@@ -251,9 +272,9 @@ def New_Purchase_Order(request):
 
 
 def Purchase_Order_Details(request,id):
-    purchase_order = PurchaseOrder.objects.get(PurchaseOrderID=id)
+    purchase_order = PurchaseOrder.objects.get(id=id)
     PO_Details = {
-        'PurchaseOrderID':purchase_order.PurchaseOrderID,
+        # 'PurchaseOrderID':purchase_order.PurchaseOrderID,
         'Alias':purchase_order.Alias,
         'Supplier':purchase_order.Supplier,
         'date_created':purchase_order.date_created,
@@ -269,6 +290,38 @@ def Purchase_Order_Details(request,id):
     }
     return render(request, 'dashboard_temp/purchase_order_details.html', context)
 
+def Purchase_Order_List(request,id):
+    supplier = Supplier.objects.get(id=id)
+    products = Products.objects.filter(primary_supplier=supplier.id)
+    orders_list = []
+    for product in products:
+        if product.order.OrderID not in orders_list:
+            orders_list.append(product.order.OrderID)
+
+    orders = Order.objects.filter(OrderID__in=orders_list)
+    context={
+        'orders':orders,
+        'supplier':supplier,
+    }
+
+    
+
+    return render(request, 'dashboard_temp/purchase_order_list.html', context)
+
+from .serilizer import *
+# import jsonresponse
+from rest_framework.response import Response
+from django.http import JsonResponse
+def order_details(request,id):
+    order = Order.objects.get(OrderID=id)
+    order_lise = OrderLine.objects.filter(Order=order)
+    order_details = OrderSerializer(order).data
+    order_line_details = OrderLineSerializer(order_lise,many=True).data
+    context={
+        'order_details':order_details,
+        'order_line_details':order_line_details,
+    }
+    return JsonResponse(context)
 
 
 

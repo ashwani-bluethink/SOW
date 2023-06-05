@@ -1,0 +1,125 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<link rel="stylesheet" href="/static/assets/css/additional_css.css"> 
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content">
+    <div class="panel-header bg-primary-gradient">
+        <div class="page-inner py-5">
+            <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row">
+                <div>
+                    <h2 class="text-white pb-2 fw-bold">Dashboard</h2>
+                    <h5 class="text-white op-7 mb-2">Free Bootstrap 4 Admin Dashboard</h5>
+                </div>
+                <div class="ml-md-auto py-2 py-md-0">
+                    <a href="#" class="btn btn-white btn-border btn-round mr-2">Manage</a>
+                    <a href="#" class="btn btn-secondary btn-round">Add Customer</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-12">
+                <input type="text" id="search-bar" class="form-control" placeholder="Search by Order ID...">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Purchase Order Details</h4>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            {% for order in orders %}
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h5 class="card-title order-id" data-id="{{order.OrderID}}"><a href="#">{{order.OrderID}}</a></h5>
+                                    <div class="order-lines" style="display: none;"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script >
+    $(document).ready(function() {
+        $("#search-bar").on("input", function() {
+            var searchValue = $(this).val().toLowerCase();
+
+            $(".order-id").each(function() {
+                var orderId = $(this).data("id");
+                if (orderId.toLowerCase().indexOf(searchValue) > -1) {
+                    $(this).parent().parent().show();
+                } else {
+                    $(this).parent().parent().hide();
+                }
+            });
+        });
+
+        $(".order-id").click(function() {
+            var orderId = $(this).data("id");
+            var orderLinesDiv = $(this).siblings(".order-lines");
+
+            if(orderLinesDiv.is(":visible")) {
+                orderLinesDiv.hide();
+            } else {
+                $.ajax({
+                    url: '/api/v1/Orderapi/order_lines/' + orderId,
+                    type: 'GET',
+                    success: function(response) {
+                        console.log('API response:', response);
+                        if (response && response.order_line_details) {
+                            orderLinesDiv.empty();
+                            response.order_line_details.forEach(function(orderLine){
+                                orderLinesDiv.append(
+                                    '<div class="card mt-2">' +
+                                        '<div class="card-body">' +
+                                            '<h5 class="card-title">Order Line: ' + orderLine.OrderLineID + '</h5>' +
+                                            '<p class="card-text">SKU: ' + orderLine.SKU + '</p>' +
+                                            '<p class="card-text">Quantity: ' + orderLine.Quantity + '</p>' +
+                                            '<p class="card-text">Quantities Received: ' + orderLine.quantities_received + '</p>' +
+                                        '</div>' +
+                                    '</div>'
+                                );
+                            });
+                            orderLinesDiv.append(
+                                '<div class="card mt-2">' +
+                                    '<div class="card-body">' +
+                                        '<div class="d-flex justify-content-end">' +
+                                            '<a href="/api/v1/Orderapi/orders/' + orderId + '/update" class="btn btn-primary mr-2">View</a>' +
+                                        '</div>' +
+                                    '</div>' +
+                                '</div>'
+                            );
+                            orderLinesDiv.show();
+                        } else {
+                            console.log('No order line details in the response.');
+                        }
+                    },
+                    error: function(error) {
+                        console.log('API error:', error);
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock javascripts %}

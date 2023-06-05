@@ -8,6 +8,8 @@ class Order(models.Model):
     DatePlaced = models.DateTimeField()
     OrderStatus = models.CharField(max_length=100)
     SalesChannel = models.CharField(max_length=100)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name='orders', null=True, blank=True)
+    
     
     
 
