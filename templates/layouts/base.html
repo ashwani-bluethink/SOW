@@ -33,9 +33,7 @@
 	<link rel="stylesheet" href="/static/assets/css/bootstrap.min.css">
 	<link rel="stylesheet" href="/static/assets/css/atlantis.css">
 	
-	{% comment %} <!-- CSS Just for demo purpose, don't include it in your project -->
-	<link rel="stylesheet" href="/static/assets/css/demo.css"> {% endcomment %}
-
+	
     <!-- Specific Page CSS goes HERE  -->
     {% block stylesheets %}{% endblock stylesheets %}
 
@@ -55,12 +53,7 @@
 
 		</div>
         
-		{% if request.user.is_authenticated %}
-
-			<!-- Custom template | don't include it in your project! -->
-			{% include 'includes/configuration-plugin.html' %}
-
-		{% endif %}		
+				
 
 	</div>
 

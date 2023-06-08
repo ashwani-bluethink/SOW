@@ -7750,7 +7750,7 @@ body {
 
 .bg-primary-gradient {
   background: #1572E8 !important;
-  background: linear-gradient(-45deg, #06418E, #1572E8) !important; }
+  background: linear-gradient(-45deg, #fff, #e5e8150a) !important; }
 
 .bg-secondary-gradient {
   background: #6861CE !important;

@@ -17,30 +17,28 @@
 						<h2 class="text-white pb-2 fw-bold">Dashboard</h2>
 						<h5 class="text-white op-7 mb-2">Free Bootstrap 4 Admin Dashboard</h5>
 					</div>
-					<div class="ml-md-auto py-2 py-md-0">
-						<a href="#" class="btn btn-white btn-border btn-round mr-2">Manage</a>
-						<a href="#" class="btn btn-secondary btn-round">Add Customer</a>
-					</div>
+					
+                        <div class="ml-md-auto py-2 py-md-0">
+                            <form method="POST" action="/api/v1/Orderapi/create_purchase_order/">
+                                {% csrf_token %}
+                                <input type="hidden" name="supplier" value="{{supplier}}">
+                            <button type="submit" class="btn btn-danger btn-round">Create Purchase Order</button>
+                        </form>
+                        </div>
+                   
+                    
 				</div>
 			</div>
 		</div>
-        {% include 'dashboard_temp/message.html' %}
-
+        
         <div class="container-fluid">
             <div class="row">
-                
-                <div class="col-md-12">
+
+                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-header">
                             <h4 class="card-title">Purchase Order Details</h4>
-                            <button id="image-button">
-                                <a href="/api/v1/Orderapi/generate-pdf/{{purchase_order.PurchaseOrderID}}">
-                                    <img src="/static/assets/img/myimage/Button-Download.png" alt="Button Image">
-                                  </a>
-                                  
-                            </button>
-                          </div>
-                          
+                        </div>
                         <div class="card">
                             <div class="card-body">
                                 <div class="row" style="margin-top: 10px;">
@@ -48,7 +46,7 @@
                                         <h5 class="card-title">PO ID</h5>
                                     </div>
                                     <div class="col-sm-6">
-                                        <p class="card-text">{{purchase_order.PurchaseOrderID}}</p>
+                                        <p class="card-text"></p>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-top: 10px;">
@@ -56,7 +54,7 @@
                                         <h5 class="card-title">Creadetd_Date</h5>
                                     </div>
                                     <div class="col-sm-6">
-                                        <p class="card-text">{{purchase_order.date_created}}</p>
+                                        <p class="card-text"></p>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-top: 10px;">
@@ -64,7 +62,7 @@
                                         <h5 class="card-title">Supplier</h5>
                                     </div>
                                     <div class="col-sm-6">
-                                        <p class="card-text">{{purchase_order.Supplier}}</p>
+                                        <p class="card-text">{{supplier}}</p>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-top: 10px;">
@@ -72,7 +70,7 @@
                                         <h5 class="card-title">Cost</h5>
                                     </div>
                                     <div class="col-sm-6">
-                                        <p class="card-text">{{purchase_order.total_cost}}</p>
+                                        <p class="card-text"></p>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-top: 10px;">
@@ -80,7 +78,7 @@
                                         <h5 class="card-title">Tracking ID</h5>
                                     </div>
                                     <div class="col-sm-6">
-                                        <p class="card-text">{{purchase_order.tracking_id}}</p>
+                                        <p class="card-text"></p>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-top: 10px;">
@@ -88,7 +86,7 @@
                                         <h5 class="card-title">Courier</h5>
                                     </div>
                                     <div class="col-sm-6">
-                                        <p class="card-text">{{purchase_order.courier}}</p>
+                                        <p class="card-text"></p>
                                     </div>
                                 </div>
                                 <div class="row" style="margin-top: 10px;">
@@ -96,85 +94,70 @@
                                         <h5 class="card-title">Alias</h5>
                                     </div>
                                     <div class="col-sm-6">
-                                        <p class="card-text">{{purchase_order.Alias}}</p>
+                                        <p class="card-text"></p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-               
-                
-
-                
-            </div>
-        </div>
+                </div> 
 
 
-        <div class="col-md-12">
+             <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
                     <h4 class="card-title"></h4>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <form  id="updateForm" method="post" action="{% url 'Order:po_stock_update' %}">
-                            {% csrf_token %}
-                            <table id="multi-filter-select1" class="display table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Order Line</th>
-                                        <th>SKU</th>
-                                        <th>Part No</th>
-                                        <th>Qty</th>
-                                        <th>Stock</th>
-                                       
-                                    </tr>
-                                </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>Order Line</th>
-                                        <th>SKU</th>
-                                        <th>Part No</th>
-                                        <th>Qty</th>
-                                        <th>Stock</th>
-                                        
-                                    </tr>
-                                </tfoot>
-                                <tbody>
-                                    {% for data in purchase_order.products.all %}
-                                    <tr>
-                                        <td>{{ data.OrderLine.OrderLineID }}</td>
-                                        <td>{{ data.sku }}</td>
-                                        <td></td>
-                                        <td>{{ data.OrderLine.Quantity }}</td>
-                                        <td>
-                                            <input type="number" name="quantities_received" value="{{ data.OrderLine.quantities_received }}">
-                                            <input type="hidden" name="OrderLineID" value="{{ data.OrderLine.OrderLineID }}">
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            <br>
-                            <div class="text-right">
-                                <button type="submit" class="btn btn-success">Update</button>
-                            </div>
-                        </form>
-                        <form  method="post" action="{% url 'Order:po_stock_update_excel' %}" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            <input type="file" name="excel_file" accept=".xlsx, .xls">
-                            <input type="hidden" name="PurchaseOrderID" value="{{PO_Details.PurchaseOrderID}}">
-                            
-                            <button type="submit" class="btn btn-danger">Stock Update By Excel </button>
-                        </form>
+                        <table id="multi-filter-select1" class="display table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order Line</th>
+                                    <th>SKU</th>
+                                    <th>Part No</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tfoot>
+                                <tr>
+                                    <th>Order Line</th>
+                                    <th>SKU</th>
+                                    <th>Part No</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                       
+                                </tr>
+                            </tfoot>
+                            <tbody>
+                                {% for data in supplier_skus %}
+                                <tr>
+                                    <td>{{ data.OrderLine.OrderLineID }}</td>
+                                    <td>{{ data.sku }}</td>
+                                    <td></td>
+                                    <td>{{ data.OrderLine.Quantity }}</td>
+                                    <td>{{ data.misc27 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        </div>
+        </div> 
+               
+                
         
-       
+        
+            </div>
+        </div>
 
+        
+        
+        
+        
     </div>
 
 {% endblock content %}
@@ -284,15 +267,5 @@
 	</script>
 
 
-    
-    <script>
-        // Get the current URL
-        var currentUrl = window.location.href;
-      
-        // Set the form's action attribute to the current URL
-        document.getElementById("updateForm").action = currentUrl;
-      </script>
-
-      
-
+   
 {% endblock javascripts %}

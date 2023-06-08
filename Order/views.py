@@ -1,4 +1,5 @@
 
+from decimal import Decimal
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.shortcuts import render, redirect, HttpResponseRedirect
@@ -50,13 +51,13 @@ def api_order_response(dict_filter, List_of_OutputSelector=None, new_headers=Non
 
 
 def order_data_view():
-    # dict_filter = {'OrderStatus': 'New Backorder'}
-    # output_selector = ['OrderID', 'OrderStatus',
-    #                    'ShippingOption', 'SalesChannel', 'OrderLine', 'DatePlaced']
-    dict_filter = {'DatePlacedFrom': "2022-06-01 00:00:00",
-                   'OrderStatus': ['New Backorder', 'Pending Pickup']}
+    dict_filter = {'OrderStatus': 'New Backorder'}
     output_selector = ['OrderID', 'OrderStatus',
                        'ShippingOption', 'SalesChannel', 'OrderLine', 'DatePlaced']
+    # dict_filter = {'DatePlacedFrom': "2022-06-29 00:00:00",
+    #                'OrderStatus': ['New Backorder', 'Pending Pickup']}
+    # output_selector = ['OrderID', 'OrderStatus',
+    #                    'ShippingOption', 'SalesChannel', 'OrderLine', 'DatePlaced']
     new_headers = None
     order_data = api_order_response(dict_filter, output_selector, new_headers)
     return order_data
@@ -164,62 +165,6 @@ def Dashboard(request):
     return render(request, 'dashboard_temp/index.html')
 
 
-# def Create_purchase_order(request):
-#     try:
-#         suppliers = Products.objects.values('primary_supplier').distinct().order_by('primary_supplier')
-#         unique_suppliers = [item['primary_supplier'] for item in suppliers]
-#         result = {}
-#         for supplier in unique_suppliers:
-#             purchase_orders = Products.objects.select_related('order', 'OrderLine').filter(
-#                 primary_supplier=supplier,
-#                 po_generated=False
-#             )
-#             if purchase_orders.exists():  # Check if there are any purchase orders to create
-#                 orders_list = []
-#                 total_cost = 0.0
-#                 for order in purchase_orders:
-#                     misc27_sum = sum(float(product.misc27) for product in order.order.products.all())
-#                     total_cost += misc27_sum
-#                     orders_list.append({
-#                         "OrderID": order.order.OrderID,
-#                         "OrderLineID": order.OrderLine.OrderLineID,
-#                         "SKU": order.sku,
-#                         "Misc27": order.misc27,
-#                         "PrimarySupplier": order.primary_supplier,
-#                         "InventoryID": order.inventory_id,
-#                         "DefaultPrice": order.default_price,
-#                         "Ack": order.ack,
-#                         "TotalMisc27": misc27_sum
-#                     })
-
-#                 # Save purchase order data in the PurchaseOrder model
-#                 purchase_order = PurchaseOrder.objects.create(
-#                     Supplier=supplier,
-#                     total_cost=total_cost
-#                 )
-
-
-#                 # Bulk insertion of products
-#                 products_to_add = [
-#                     product for product in purchase_orders.only('order', 'OrderLine', 'sku', 'misc27')
-#                 ]
-#                 purchase_order.products.set(products_to_add)
-#                 purchase_orders.update(po_generated=True)
-
-#                 # Save the changes to the purchase order
-#                 purchase_order.save()
-
-
-#                 result[supplier] = orders_list
-#     except Exception as e:
-#             message = "Error: {}".format(e)
-#             messages.info(request, message)
-#             redirect_url = reverse('Order:new_purches_order')
-#             return HttpResponseRedirect(redirect_url)
-#     message = "Purchase orders created successfully."
-#     messages.info(request, message)
-#     return redirect('Order:new_purches_order')
-
 def do_false(request):
     products = Products.objects.filter(po_generated=True)
     products.update(po_generated=False)
@@ -227,145 +172,102 @@ def do_false(request):
 
 
 def Get_Suppliers(request):
-    orders = Order.objects.all()
-
-    for order in orders:
-        products_data = order.products.filter(po_generated=False)
-
-        total_cost = 0.0
-        misc27_sum = sum(float(product.misc27) for product in products_data)
-        total_cost += misc27_sum
-
-        if products_data:  # Check if there are any products to process
-            # Create a new purchase order for each order
-            primary_supplier = products_data.first().primary_supplier
-            purchase_order = PurchaseOrder.objects.create(
-                Order=order,
-                Supplier=primary_supplier,
-                total_cost=total_cost
-            )
-
-            # Add all products of the order to the purchase order
-            purchase_order.products.add(*products_data)
-
-            # Mark all products in the order as processed by setting po_generated to True
-            products_data.update(po_generated=True)
-
     return redirect('Order:letest_supplier')
 
 
 def Lestest_Suppliers(request):
-    # Ensuring to get current date and time according to timezone
-    today = timezone.now().date()
-    # Ensure that date_created is a DateTimeField
-    purchase_orders = PurchaseOrder.objects.filter(date_created__gte=today)
-
-    latest_suppliers = {}
-    for purchase_order in purchase_orders:
-        supplier = purchase_order.Supplier
-        if supplier not in latest_suppliers:
-            latest_suppliers[supplier] = []
-
-        latest_suppliers[supplier].append(purchase_order)
-
+    suppliers = Products.objects.filter(
+        po_generated=False).values_list('primary_supplier', flat=True)
+    unique_suppliers_list = list(set(suppliers))
     context = {
-        'latest_suppliers': latest_suppliers
+        'unique_suppliers': unique_suppliers_list
     }
     return render(request, 'dashboard_temp/get_suppliers.html', context)
 
 
-def Order_list(request, su_name):
-    supplier_orders_list = {}
-    purchase_orders = PurchaseOrder.objects.filter(Supplier=su_name)
-
-    for purchase_order in purchase_orders:
-        order = purchase_order.Order
-
-        if purchase_order.Supplier in supplier_orders_list:
-            supplier_orders_list[purchase_order.Supplier].append(order)
-        else:
-            supplier_orders_list[purchase_order.Supplier] = [order]
-
-    context = {
-        "supplier_orders": supplier_orders_list
-    }
-    return render(request, 'dashboard_temp/Orderlist.html', context)
-
-
-def Order_PO(request):
-    orderid = request.GET.get('orderid')
-    purchase_order = get_object_or_404(PurchaseOrder, Order__OrderID=orderid)
-    
-    products = purchase_order.products.all()
-    
-    context = {
-        "purchase_order": purchase_order,
-        "products":products
-    
-    }
-    return render(request, 'dashboard_temp/Order_po.html', context)
-
-
-def PO_Stock_Update(request):
-    if request.method == 'POST':
-        order_line_ids = request.POST.getlist('OrderLineID')
-        quantities_received = request.POST.getlist('quantities_received')
-
-        for order_line_id, quantity_received in zip(order_line_ids, quantities_received):
-            order_line = OrderLine.objects.get(OrderLineID=order_line_id)
-            if quantity_received:
-                order_line.quantities_received = int(quantity_received)
-            else:
-                order_line.quantities_received = 0
-            order_line.save()
-
-    context = {}
-    today = date.today()
-    purchase_orders = PurchaseOrder.objects.filter(date_created__date=today)
-
-    latest_suppliers = {}
-    for purchase_order in purchase_orders:
-        latest_suppliers[purchase_order.PurchaseOrderID] = purchase_order.Supplier
-
-    first_Purchase_id = next(iter(latest_suppliers.keys()), None)
-    Purchase_id = request.GET.get('Purchase_id')
-    global PO_id
-    if Purchase_id:
-        try:
-            purchase_order = PurchaseOrder.objects.get(
-                PurchaseOrderID=Purchase_id)
-            PO_id = Purchase_id
-        except:
-            messages.info(request, "Pourches Order not available.")
-            return redirect('Order:new_purches_order')
-
-    else:
-        try:
-            purchase_order = PurchaseOrder.objects.get(
-                PurchaseOrderID=first_Purchase_id)
-            PO_id = first_Purchase_id
-        except:
-            messages.info(request, "Pourches Order not available.")
-            return redirect('Order:new_purches_order')
-
-    if purchase_order:
-        PO_Details = {
-            'PurchaseOrderID': purchase_order.PurchaseOrderID,
-            'Alias': purchase_order.Alias,
-            'Supplier': purchase_order.Supplier,
-            'date_created': purchase_order.date_created,
-            'tracking_id': purchase_order.tracking_id,
-            'courier': purchase_order.courier,
-            'total_cost': purchase_order.total_cost,
-        }
-        PO_Orders = purchase_order.products.all()
+def Suppliers_SKU(request):
+    if request.method == "POST":
+        supplier = request.POST.get('supplier')
+        skus = Products.objects.filter(
+            primary_supplier=supplier, po_generated=False)
         context = {
-            "latest_suppliers": latest_suppliers,
-            "PO_Orders": PO_Orders,
-            "PO_Details": PO_Details,
-            "purchase_order_id": PO_id,
+            "supplier_skus": skus,
+            "supplier": supplier,
         }
-    return render(request, 'dashboard_temp/PO_Stock_Update.html', context)
+        return render(request, 'dashboard_temp/suppliers_sku.html', context)
+    return redirect("Order:letest_supplier")
+
+
+def Create_purchase_order(request):
+    if request.method == "POST":
+        supplier = request.POST.get('supplier')
+        supplier_skus = Products.objects.select_related('order', 'OrderLine').filter(
+            primary_supplier=supplier,
+            po_generated=False
+        )
+        # Iterate over the supplier's SKUs and add them to the purchase order
+        list_of_products = []
+        total_price = Decimal(0.0)  # Initialize total price
+        for supplier_sku in supplier_skus:
+            product = supplier_sku
+            supplier_sku.po_generated = True
+            supplier_sku.save()
+
+            list_of_products.append(product)
+
+            # Add the product's misc27 value to the total price
+            total_price += Decimal(product.misc27)
+
+        # Create a new purchase order
+        purchase_order = PurchaseOrder(
+            Supplier=supplier, total_cost=total_price)
+        purchase_order.save()
+
+        # Add the products to the purchase order
+        purchase_order.products.set(list_of_products)
+
+        context = {
+            "supplier": supplier,
+            "purchase_order": purchase_order,
+        }
+        return render(request, 'dashboard_temp/PO_details_after_genrate_PO.html', context)
+    return redirect("Order:letest_supplier")
+
+
+def List_Of_PO_Stock_Update_suppliers(request):
+    purchase_orders = PurchaseOrder.objects.filter(submitted=False)
+    suppliers = set(
+        purchase_order.Supplier for purchase_order in purchase_orders)
+    unique_suppliers = list(suppliers)
+    
+    
+    context = {
+        "unique_suppliers": unique_suppliers,
+    }
+    return render(request, 'dashboard_temp/list_of_po_stock_update_suppliers.html', context)
+
+def Supplier_PO_List(request):
+    if request.method == "GET":
+        supplier = request.GET.get('supplier')
+        purchase_orders = PurchaseOrder.objects.filter(Supplier=supplier, submitted=False)
+        
+        purchase_order_id = [purchase_order.PurchaseOrderID for purchase_order in purchase_orders]
+        return JsonResponse(purchase_order_id, safe=False)
+
+
+
+def Updated_PO_Stock(request):
+    po_id = request.GET.get('po_id')
+    purchase_order = PurchaseOrder.objects.get(PurchaseOrderID=po_id)
+    for i in purchase_order.products.all():
+        print(i,"!!!!!!!!!!!")
+    
+    return render(request, 'dashboard_temp/PO_Stock_Update.html', {'purchase_order': purchase_order})
+    
+
+
+
+
 
 
 def po_stock_update_excel(request):

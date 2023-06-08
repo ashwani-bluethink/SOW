@@ -13,7 +13,7 @@
 
 /* ######################### */
 .card-header {
-    display: flex;
+    /* display: flex; */
     align-items: center;
   }
   
@@ -39,5 +39,17 @@
   }
   
   
-/* ############# supplier list ########## */
+/* ############# supplier list popup ########## */
+
+
+
+#bg-color {
+  background: #1572E8 !important;
+  background:linear-gradient(-45deg, #06418E, #b0b9c5) !important;}
+
+
+#card-bg-color{
+  background: #575962;
+}
+
 

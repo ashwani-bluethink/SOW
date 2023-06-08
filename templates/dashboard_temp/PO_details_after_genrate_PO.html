@@ -1,0 +1,263 @@
+{% extends "layouts/base.html" %} {% block title %} Dashboard {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<link rel="stylesheet" href="/static/assets/css/additional_css.css" />
+{% endblock stylesheets %} {% block content %}
+
+<div class="content">
+  <div class="panel-header"id="bg-color">
+    <div class="page-inner py-5">
+      <div
+        class="d-flex align-items-left align-items-md-center flex-column flex-md-row"
+      >
+        <div>
+          <h2 class="text-white pb-2 fw-bold">Dashboard</h2>
+          <h5 class="text-white op-7 mb-2">Free Bootstrap 4 Admin Dashboard</h5>
+        </div>
+        <div class="ml-md-auto py-2 py-md-0">
+          <form method="POST" action="/api/v1/Orderapi/letest_supplier/">
+            {% csrf_token %}
+            <input type="hidden" name="supplier" value="{{supplier}}">
+        <button type="submit" class="btn btn-secondary btn-round">Return Order List</button>
+        </div>
+          
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title">Purchase Order Details</h4>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <div class="row" style="margin-top: 10px">
+                <div class="col-sm-6">
+                  <h5 class="card-title">PO ID</h5>
+                </div>
+                <div class="col-sm-6">
+                  <p class="card-text">{{purchase_order.PurchaseOrderID}}</p>
+                </div>
+              </div>
+              <div class="row" style="margin-top: 10px">
+                <div class="col-sm-6">
+                  <h5 class="card-title">Creadetd_Date</h5>
+                </div>
+                <div class="col-sm-6">
+                  <p class="card-text">{{purchase_order.date_created}}</p>
+                </div>
+              </div>
+              <div class="row" style="margin-top: 10px">
+                <div class="col-sm-6">
+                  <h5 class="card-title">Supplier</h5>
+                </div>
+                <div class="col-sm-6">
+                  <p class="card-text">{{purchase_order.Supplier}}</p>
+                </div>
+              </div>
+              <div class="row" style="margin-top: 10px">
+                <div class="col-sm-6">
+                  <h5 class="card-title">Cost</h5>
+                </div>
+                <div class="col-sm-6">
+                  <p class="card-text">{{purchase_order.total_cost}}</p>
+                </div>
+              </div>
+              <div class="row" style="margin-top: 10px">
+                <div class="col-sm-6">
+                  <h5 class="card-title">Tracking ID</h5>
+                </div>
+                <div class="col-sm-6">
+                  <p class="card-text">{{purchase_order.tracking_id}}</p>
+                </div>
+              </div>
+              <div class="row" style="margin-top: 10px">
+                <div class="col-sm-6">
+                  <h5 class="card-title">Courier</h5>
+                </div>
+                <div class="col-sm-6">
+                  <p class="card-text">{{purchase_order.courier}}</p>
+                </div>
+              </div>
+              <div class="row" style="margin-top: 10px">
+                <div class="col-sm-6">
+                  <h5 class="card-title">Alias</h5>
+                </div>
+                <div class="col-sm-6">
+                  <p class="card-text">{{purchase_order.Alias}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title"></h4>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table
+                id="multi-filter-select1"
+                class="display table table-striped table-hover"
+              >
+                <thead>
+                  <tr>
+                    <th>Order Line</th>
+                    <th>SKU</th>
+                    <th>Part No</th>
+                    <th>Qty</th>
+
+                    <th>Stock</th>
+                  </tr>
+                </thead>
+                <tfoot>
+                  <tr>
+                    <th>Order Line</th>
+                    <th>SKU</th>
+                    <th>Part No</th>
+                    <th>Qty</th>
+                    <th>Stock</th>
+                  </tr>
+                </tfoot>
+                <tbody>
+                  {% for data in purchase_order.products.all %}
+                  <tr>
+                    <td>{{ data.OrderLine.OrderLineID }}</td>
+                    <td>{{ data.sku }}</td>
+                    <td></td>
+                    <td>{{ data.OrderLine.Quantity }}</td>
+                    <td>{{ data.quantities_received }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %} {% block javascripts %}
+
+<!-- Atlantis DEMO methods, don't include it in your project! -->
+{% comment %}
+<script src="/static/assets/js/setting-demo2.js"></script>
+{% endcomment %}
+<script>
+  $(document).ready(function () {
+    $("#basic-datatables").DataTable({});
+
+    $("#multi-filter-select").DataTable({
+      pageLength: 5,
+      initComplete: function () {
+        this.api()
+          .columns()
+          .every(function () {
+            var column = this;
+            var select = $(
+              '<select class="form-control"><option value=""></option></select>'
+            )
+              .appendTo($(column.footer()).empty())
+              .on("change", function () {
+                var val = $.fn.dataTable.util.escapeRegex($(this).val());
+
+                column.search(val ? "^" + val + "$" : "", true, false).draw();
+              });
+
+            column
+              .data()
+              .unique()
+              .sort()
+              .each(function (d, j) {
+                select.append('<option value="' + d + '">' + d + "</option>");
+              });
+          });
+      },
+    });
+
+    // Add Row
+    $("#add-row").DataTable({
+      pageLength: 5,
+    });
+
+    var action =
+      '<td> <div class="form-button-action"> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"> <i class="fa fa-edit"></i> </button> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"> <i class="fa fa-times"></i> </button> </div> </td>';
+
+    $("#addRowButton").click(function () {
+      $("#add-row")
+        .dataTable()
+        .fnAddData([
+          $("#addName").val(),
+          $("#addPosition").val(),
+          $("#addOffice").val(),
+          action,
+        ]);
+      $("#addRowModal").modal("hide");
+    });
+  });
+</script>
+
+<script>
+  $(document).ready(function () {
+    $("#basic-datatables").DataTable({});
+
+    $("#multi-filter-select1").DataTable({
+      pageLength: 5,
+      initComplete: function () {
+        this.api()
+          .columns()
+          .every(function () {
+            var column = this;
+            var select = $(
+              '<select class="form-control"><option value=""></option></select>'
+            )
+              .appendTo($(column.footer()).empty())
+              .on("change", function () {
+                var val = $.fn.dataTable.util.escapeRegex($(this).val());
+
+                column.search(val ? "^" + val + "$" : "", true, false).draw();
+              });
+
+            column
+              .data()
+              .unique()
+              .sort()
+              .each(function (d, j) {
+                select.append('<option value="' + d + '">' + d + "</option>");
+              });
+          });
+      },
+    });
+
+    // Add Row
+    $("#add-row").DataTable({
+      pageLength: 5,
+    });
+
+    var action =
+      '<td> <div class="form-button-action"> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"> <i class="fa fa-edit"></i> </button> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"> <i class="fa fa-times"></i> </button> </div> </td>';
+
+    $("#addRowButton").click(function () {
+      $("#add-row")
+        .dataTable()
+        .fnAddData([
+          $("#addName").val(),
+          $("#addPosition").val(),
+          $("#addOffice").val(),
+          action,
+        ]);
+      $("#addRowModal").modal("hide");
+    });
+  });
+</script>
+
+{% endblock javascripts %}

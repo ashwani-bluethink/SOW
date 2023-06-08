@@ -3,7 +3,9 @@
 {% block title %} Dashboard {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<link rel="stylesheet" href="/static/assets/css/additional_css.css"> 
+{% endblock stylesheets %}
 
 {% block content %}
 
@@ -11,7 +13,7 @@
 
 			
 <div class="content">
-	<div class="panel-header bg-primary-gradient">
+	<div class="panel-header "id="bg-color">
 		<div class="page-inner py-5">
 			<div class="d-flex align-items-left align-items-md-center flex-column flex-md-row">
 				<div>
@@ -35,7 +37,7 @@
 		<div class="card-body">
 			<h5 class="card-title">Special title treatment</h5>
 			<p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-			<a href="{% url 'Order:get_suppliers'%}" class="btn btn-primary">Force Run</a>
+			<a href="{% url 'Order:get_suppliers'%}" class="btn btn-warning">Force Run</a>
 		  </div>
 		  
 		<div class="card-footer text-muted">
@@ -48,12 +50,17 @@
 		</div>
 		<div class="card-body">
 			<div class="row">
-				{% for supplier,Orders in latest_suppliers.items %}
+				{% for supplier in unique_suppliers %}
 				<div class="col-md-2" style="padding: 10px;">
-					<a href="{% url 'Order:order_list' su_name=supplier %}" class="btn btn-primary btn-sm" style="display: block; width: 200px; height: 50px; padding: 10px; margin: 10px;">
-						<p style="text-align: center; word-wrap: break-word;">{{ supplier }}</p>
-					</a>
+					<form action="{% url 'Order:supplier_sku' %}" method="post">
+						{% csrf_token %}
+						<input type="hidden" name="supplier" value="{{ supplier }}">
+						<button type="submit" class="btn btn-primary btn-sm" style="display: block; width: 200px; height: 50px; padding: 10px; margin: 10px;">
+							<p style="text-align: center; word-wrap: break-word;">{{ supplier }}</p>
+						</button>
+					</form>
 				</div>
+				
 				
 				{% endfor %}
 			</div>
