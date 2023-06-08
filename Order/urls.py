@@ -9,7 +9,7 @@ urlpatterns = [
     path('insert_update_order_data_in_db/', views.insert_order_data, name='insert_update_order_data_in_db'),
     path("product_insert_db/", views.product_insert_db, name="product_insert_db"),
   
-    path('dashboard/',views.Dashboard,name='dashboard'),
+    path('',views.Dashboard,name='dashboard'),
     path('get_suppliers/', views.Get_Suppliers, name="get_suppliers"),
     path('letest_supplier/', views.Lestest_Suppliers, name="letest_supplier"),
     path("supplier_sku/", views.Suppliers_SKU, name="supplier_sku"),

@@ -109,7 +109,7 @@
 						purchaseOrdersContainer.innerHTML = '';
 						data.forEach(order => {
 							const orderElement = document.createElement('a');
-							orderElement.href = '/api/v1/Orderapi/po_stock_update/?po_id=' + order;
+							orderElement.href = '/po_stock_update/?po_id=' + order;
 							orderElement.style.display = 'block'; // Set display to block to ensure the <a> takes up the entire line
 							orderElement.style.margin = '10px 0'; // Add space around the order
 						  
