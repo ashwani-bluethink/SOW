@@ -13,15 +13,12 @@ from django.shortcuts import render
 from .models import Order, OrderLine, Products
 from django.db.models import Q
 from warehouse.models import PurchaseOrder
-import time
 from django.contrib import messages
 from datetime import datetime, date
-import pandas as pd
-import openpyxl
 import os
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from weasyprint import HTML
+
 
 
 def api_order_response(dict_filter, List_of_OutputSelector=None, new_headers=None):
